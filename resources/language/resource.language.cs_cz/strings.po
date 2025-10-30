@@ -1,0 +1,242 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "#32000"
+msgid "Movies"
+msgstr "Filmy"
+
+msgctxt "#32001"
+msgid "TV Shows"
+msgstr "Seriály"
+
+msgctxt "#32002"
+msgid "Browse All"
+msgstr "Procházet vše"
+
+msgctxt "#32003"
+msgid "Browse by Alphabet"
+msgstr "Procházet podle abecedy"
+
+msgctxt "#32004"
+msgid "Browse by Genre"
+msgstr "Procházet podle žánru"
+
+msgctxt "#32005"
+msgid "Browse by Quality"
+msgstr "Procházet podle kvality"
+
+msgctxt "#32006"
+msgid "Search"
+msgstr "Hledat"
+
+msgctxt "#32007"
+msgid "Enter search query"
+msgstr "Zadejte hledaný výraz"
+
+msgctxt "#32008"
+msgid "Login required. Please configure your Webshare credentials in the add-on settings."
+msgstr "Je vyžadováno přihlášení. Nastavte své údaje pro Webshare v nastavení doplňku."
+
+msgctxt "#32009"
+msgid "Unable to fetch data from Webshare."
+msgstr "Nepodařilo se načíst data z Webshare."
+
+msgctxt "#32010"
+msgid "Next page"
+msgstr "Další strana"
+
+msgctxt "#32011"
+msgid "Audio languages"
+msgstr "Jazyky zvuku"
+
+msgctxt "#32012"
+msgid "Subtitle languages"
+msgstr "Jazyky titulků"
+
+msgctxt "#32013"
+msgid "Quality filter"
+msgstr "Filtr kvality"
+
+msgctxt "#32014"
+msgid "Czech"
+msgstr "Čeština"
+
+msgctxt "#32015"
+msgid "English"
+msgstr "Angličtina"
+
+msgctxt "#32016"
+msgid "Slovak"
+msgstr "Slovenština"
+
+msgctxt "#32017"
+msgid "High Definition"
+msgstr "Vysoké rozlišení"
+
+msgctxt "#32018"
+msgid "Ultra HD / 4K"
+msgstr "Ultra HD / 4K"
+
+msgctxt "#32019"
+msgid "Standard Definition"
+msgstr "Standardní rozlišení"
+
+msgctxt "#32020"
+msgid "No items matched the current filters."
+msgstr "Žádná položka neodpovídá aktuálním filtrům."
+
+msgctxt "#32021"
+msgid "Filter movies by letter"
+msgstr "Filtrovat filmy podle písmena"
+
+msgctxt "#32022"
+msgid "Filter shows by letter"
+msgstr "Filtrovat seriály podle písmena"
+
+msgctxt "#32023"
+msgid "Recently added"
+msgstr "Nedávno přidané"
+
+msgctxt "#32024"
+msgid "My Account"
+msgstr "Můj účet"
+
+msgctxt "#32025"
+msgid "Logout"
+msgstr "Odhlásit"
+
+msgctxt "#32026"
+msgid "Metadata provider disabled"
+msgstr "Poskytovatel metadat je vypnutý"
+
+msgctxt "#32027"
+msgid "Filters"
+msgstr "Filtry"
+
+msgctxt "#32028"
+msgid "Quality"
+msgstr "Kvalita"
+
+msgctxt "#32029"
+msgid "Languages"
+msgstr "Jazyky"
+
+msgctxt "#32030"
+msgid "Webshare account"
+msgstr "Účet Webshare"
+
+msgctxt "#32031"
+msgid "Username or email"
+msgstr "Uživatelské jméno nebo e-mail"
+
+msgctxt "#32032"
+msgid "Password"
+msgstr "Heslo"
+
+msgctxt "#32033"
+msgid "Keep me signed in"
+msgstr "Zůstat přihlášen"
+
+msgctxt "#32034"
+msgid "Default filters"
+msgstr "Výchozí filtry"
+
+msgctxt "#32035"
+msgid "Default quality filter"
+msgstr "Výchozí filtr kvality"
+
+msgctxt "#32036"
+msgid "Any quality"
+msgstr "Jakákoli kvalita"
+
+msgctxt "#32037"
+msgid "HD (720p/1080p)"
+msgstr "HD (720p/1080p)"
+
+msgctxt "#32038"
+msgid "UHD / 4K"
+msgstr "UHD / 4K"
+
+msgctxt "#32039"
+msgid "SD"
+msgstr "SD"
+
+msgctxt "#32040"
+msgid "Default audio language"
+msgstr "Výchozí jazyk zvuku"
+
+msgctxt "#32041"
+msgid "Any language"
+msgstr "Jakýkoli jazyk"
+
+msgctxt "#32042"
+msgid "Metadata"
+msgstr "Metadata"
+
+msgctxt "#32043"
+msgid "Metadata provider"
+msgstr "Poskytovatel metadat"
+
+msgctxt "#32044"
+msgid "TMDb first, ČSFD fallback"
+msgstr "TMDb jako první, záloha ČSFD"
+
+msgctxt "#32045"
+msgid "ČSFD first, TMDb fallback"
+msgstr "ČSFD jako první, záloha TMDb"
+
+msgctxt "#32046"
+msgid "TMDb only"
+msgstr "Pouze TMDb"
+
+msgctxt "#32047"
+msgid "ČSFD only"
+msgstr "Pouze ČSFD"
+
+msgctxt "#32048"
+msgid "No metadata"
+msgstr "Bez metadat"
+
+msgctxt "#32049"
+msgid "TMDb API key"
+msgstr "TMDb API klíč"
+
+msgctxt "#32050"
+msgid "Metadata language (e.g. cs-CZ)"
+msgstr "Jazyk metadat (např. cs-CZ)"
+
+msgctxt "#32051"
+msgid "Metadata region (e.g. CZ)"
+msgstr "Region metadat (např. CZ)"
+
+msgctxt "#32052"
+msgid "Default subtitle language"
+msgstr "Výchozí jazyk titulků"
+
+msgctxt "#32053"
+msgid "Items per page"
+msgstr "Počet položek na stránku"
+
+msgctxt "#32054"
+msgid "ČSFD User-Agent header"
+msgstr "User-Agent hlavička pro ČSFD"
+
+msgctxt "#32055"
+msgid "Streaming"
+msgstr "Streamování"
+
+msgctxt "#32056"
+msgid "Download mode"
+msgstr "Režim přehrávání"
+
+msgctxt "#32057"
+msgid "Stream video"
+msgstr "Streamovat video"
+
+msgctxt "#32058"
+msgid "Download file"
+msgstr "Stáhnout soubor"
+
+msgctxt "#32059"
+msgid "Force HTTPS links"
+msgstr "Vynutit odkazy HTTPS"

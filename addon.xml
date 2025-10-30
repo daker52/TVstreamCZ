@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.tvstreamcz"
+       name="TVStreamCZ"
+       version="0.1.0"
+       provider-name="TVStreamCZ">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.requests" version="2.27.1" />
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="addon.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="cs_CZ">Streamovací doplněk pro Webshare.cz</summary>
+        <summary lang="en_GB">Streaming add-on for Webshare.cz</summary>
+        <description lang="cs_CZ">Doplněk pro Kodi zpřístupňující filmy a seriály uložené na Webshare.cz včetně přihlášení, filtrů kvality a metadat z TMDb/ČSFD.</description>
+        <description lang="en_GB">Kodi add-on that browses Webshare.cz movies and TV shows with account login, quality/language filters and optional metadata enrichment from TMDb/ČSFD.</description>
+        <language>cs,en</language>
+        <platform>all</platform>
+    </extension>
+</addon>
