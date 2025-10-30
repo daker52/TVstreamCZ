@@ -1,50 +1,104 @@
-# TVStreamCZ Kodi Add-on
+# TVStreamCZ Kodi Plugin
 
-TVStreamCZ is a Kodi video add-on that browses and streams films and TV shows hosted on [Webshare.cz](https://webshare.cz/). The plug-in provides structured navigation (recent titles, alphabetical listings, quality filters, genre drill-down) and augments Webshare entries with metadata fetched from TMDb and/or ČSFD.
+![TVStreamCZ](https://img.shields.io/badge/Kodi-21.x-blue?logo=kodi)
 
-## Features
+**TVStreamCZ** je moderní český plugin pro Kodi, který umožňuje pohodlné sledování filmů a seriálů z Webshare.cz s bohatou integrací metadat (TMDb, ČSFD) a profesionálním výběrem streamů.
 
-- Webshare authentication (salted MD5-crypt + SHA1 digest) with session persistence.
-- Movies and series navigation: recently added, alphabetical view, quality/audio/subtitle filters.
-- Optional metadata enrichment:
-  - **TMDb** (requires personal API key) for posters, overviews, ratings, genres.
-  - **ČSFD** scraping fallback for localized metadata.
-- Streaming links resolved via the official Webshare API (`file_link` endpoint) with optional HTTPS enforcement.
-- Basic heuristics extract quality (HD/UHD/SD), audio languages (CZ/SK/EN), subtitle tags and season/episode numbers directly from Webshare filenames.
+---
 
-## Installation
+## Hlavní funkce
 
-1. Copy the add-on folder into your Kodi add-ons directory (e.g. `~/.kodi/addons/plugin.video.tvstreamcz`).
-2. Restart Kodi or trigger an add-on scan so that Kodi registers the new plug-in.
-3. Open *Add-ons → Video add-ons → TVStreamCZ*.
+- **Vyhledávání filmů a seriálů** s automatickým rozpoznáním typu obsahu
+- **Hierarchická navigace** v seriálech (sezóny, epizody)
+- **Profesionální výběr streamu** (kvalita, velikost, audio, jazyk)
+- **Filtrování podle žánru, kvality, zvuku, titulků**
+- **Metadata z TMDb a ČSFD** (popisy, plakáty, hodnocení, žánry)
+- **Kategorie: Populární, Nejlépe hodnocené, Právě v kinech, Novinky, Top 10, podle žánru**
+- **Podpora češtiny a angličtiny**
+- **Automatická detekce CZ/EN/SK audio**
+- **Rychlé vyhledávání přes Webshare API**
+- **Správná struktura ZIP pro instalaci v Kodi**
 
-## Configuration
+---
 
-Open the add-on settings before first use:
+## Instalace
 
-- **Webshare account** – Provide your Webshare username/e-mail and password. The password is hashed client-side as required by the API.
-- **Default filters** – Optional default quality/audio/subtitle filters and page size.
-- **Metadata** – Choose metadata source order and configure your TMDb API key and preferred language/region. ČSFD scraping uses a configurable User-Agent header.
-- **Streaming** – Select download mode (`video_stream` is recommended) and whether HTTPS links should be enforced.
+1. Stáhněte ZIP balíček z [releases](https://github.com/daker52/TVstreamCZ/releases)
+2. V Kodi zvolte `Doplňky` > `Instalovat ze souboru ZIP`
+3. Vyberte stažený ZIP soubor
+4. Plugin najdete v sekci `Doplňky > Video`
 
-After saving the settings the add-on will authenticate against Webshare and cache the session token for subsequent runs.
+---
 
-## Usage Tips
+## Nastavení
 
-- The *Filters* menu allows quick access to quality and language filtered views.
-- Genre browsing requires at least one enabled metadata provider that exposes a genre catalogue (TMDb recommended).
-- If a video fails to play, verify that your Webshare account has sufficient privileges to stream the selected file.
+- Vložte své přihlašovací údaje k Webshare.cz
+- (Volitelné) Zadejte TMDb API klíč pro lepší metadata
+- Vyberte preferovaný jazyk metadat (cz/en)
 
-## Development Notes
+---
 
-- The project targets Kodi 20+ (Python 3). Dependencies: `script.module.requests`.
-- Source layout:
-  - `resources/lib/webshare_api.py` – low-level API wrapper.
-  - `resources/lib/parser.py` – heuristics for filename parsing.
-  - `resources/lib/metadata.py` – metadata providers (TMDb, ČSFD) with caching.
-  - `resources/lib/catalogue.py` – search/filter orchestration.
-  - `resources/lib/plugin.py` – Kodi routing and UI glue.
+## Metadata kategorie
 
-## Disclaimer
+### Filmy
+- Populární
+- Nejlépe hodnocené
+- Právě v kinech
+- Novinky
+- Podle žánru
 
-This add-on relies on publicly documented Webshare endpoints and unofficial ČSFD HTML parsing. Respect the terms of service of all involved platforms and use the add-on responsibly.
+### Seriály
+- Populární
+- Nejlépe hodnocené
+- Vysílané dnes
+- Aktuálně vysílané
+- Podle žánru
+
+---
+
+## Výběr streamu
+
+Při výběru souboru se zobrazí dialog s přehledem kvality, velikosti a audio informací (podobně jako Stream Cinema).
+
+- **Kvalita:** 4K/2160p, 1080p, 720p, CAM, atd.
+- **Velikost:** v GB/MB
+- **Audio:** kodek, kanály, jazyk (CZ/EN/SK)
+
+---
+
+## Vývoj
+
+- [GitHub repozitář](https://github.com/daker52/TVstreamCZ)
+- Pull requesty vítány!
+
+---
+
+## Licence
+
+MIT
+
+---
+
+## Autoři
+
+- [daker52](https://github.com/daker52)
+- [další přispěvatelé vítáni]
+
+---
+
+## FAQ
+
+**Q: Proč nevidím metadata?**
+- Zkontrolujte, že máte správně nastavený TMDb API klíč a internetové připojení.
+
+**Q: Proč nefunguje přehrávání?**
+- Ověřte, že máte aktivní Webshare účet a správně zadané přihlašovací údaje.
+
+**Q: Jak přidat další zdroje metadat?**
+- Plugin podporuje hybridní režim TMDb/ČSFD, další lze přidat rozšířením `metadata.py`.
+
+---
+
+## Podpora
+
+Pro nahlášení chyb nebo návrhy na vylepšení použijte [issues](https://github.com/daker52/TVstreamCZ/issues) na GitHubu.
