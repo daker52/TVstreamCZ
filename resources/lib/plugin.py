@@ -14,6 +14,7 @@ from .catalogue import WebshareCatalogue
 from .metadata import MetadataManager
 from .settings import AddonSettings
 from .webshare_api import WebshareAPI, WebshareAuthError, WebshareError
+from .trakt_api import TraktAPI
 
 
 class Plugin:
@@ -48,6 +49,7 @@ class Plugin:
             self.api.set_token(token)
         self.metadata = MetadataManager(self.settings, self._logger) if self.settings.metadata_provider != "none" else None
         self.catalogue = WebshareCatalogue(self.api, self.metadata, self.settings, self._logger)
+        self.trakt_api = TraktAPI(self.addon, self._logger) if self.settings.trakt_enabled else None
 
     # ------------------------------------------------------------------
     # Helpers
@@ -196,6 +198,8 @@ class Plugin:
             self.show_metadata_content()
         elif action == "play":
             self.play_item()
+        elif action == "trakt_authorize":
+            self.trakt_authorize()
         else:
             self.show_root()
 
@@ -404,6 +408,51 @@ class Plugin:
             self.params["media_type"] = media_type
         self.show_browse()
 
+    def _handle_tvshow_browse(self, query: str) -> bool:
+        """Detect and handle TV show browsing."""
+        self._logger("Detecting content type from search results", xbmc.LOGINFO)
+        test_items, _, _, _ = self.catalogue.fetch(
+            query=query,
+            start_offset=0,
+            page_size=10
+        )
+        if test_items:
+            tv_count = sum(1 for item in test_items if item.media_type == "tvshow")
+            self._logger(f"Found {len(test_items)} items, {tv_count} are TV shows", xbmc.LOGINFO)
+            if tv_count >= len(test_items) / 2:  # More than half are TV shows
+                self.params["media_type"] = "tvshow"
+                self._logger("Detected as TV content, redirecting to series list", xbmc.LOGINFO)
+                self.show_series_list()
+                return True
+        return False
+
+    def _add_next_page_item(self, params: Dict[str, object]) -> None:
+        """Add a 'Next Page' item to the directory listing."""
+        next_url = self.build_url({k: v for k, v in params.items() if v not in (None, "")})
+        xbmcplugin.addDirectoryItem(
+            self.handle,
+            next_url,
+            xbmcgui.ListItem(label=self._localized(32010)),
+            isFolder=True,
+        )
+
+    def _populate_directory_with_items(self, items: list, media_type: Optional[str]) -> None:
+        """Create and add list items to the Kodi directory."""
+        for item in items:
+            list_item = self._create_list_item(item, media_type)
+            url_params = {"action": "play", "ident": item.ident, "media_type": media_type}
+            if item.metadata and item.metadata.get("tmdb_id"):
+                url_params["tmdb_id"] = item.metadata.get("tmdb_id")
+            url = self.build_url(url_params)
+            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+
+    def _end_directory_with_message(self, message_id: int) -> None:
+        """End the directory listing and show a notification if it's empty."""
+        xbmcplugin.endOfDirectory(self.handle)
+        offset = int(self.params.get("offset", "0"))
+        if offset == 0:
+            self.notify(self._localized(message_id), level=xbmc.LOGINFO)
+
     def show_browse(self) -> None:
         media_type = self.params.get("media_type")
         query = self.params.get("query", "")
@@ -412,25 +461,10 @@ class Plugin:
         
         # If no media_type specified but we have a query, check what type of content we found
         if not media_type and query:
-            self._logger("Detecting content type from search results", xbmc.LOGINFO)
-            # Quick fetch to determine content type
-            test_items, _, _, _ = self.catalogue.fetch(
-                query=query,
-                start_offset=0,
-                page_size=10
-            )
-            # If most items are TV shows, treat as TV content
-            if test_items:
-                tv_count = sum(1 for item in test_items if item.media_type == "tvshow")
-                self._logger(f"Found {len(test_items)} items, {tv_count} are TV shows", xbmc.LOGINFO)
-                if tv_count >= len(test_items) / 2:  # More than half are TV shows
-                    media_type = "tvshow"
-                    self.params["media_type"] = "tvshow"
-                    self._logger("Detected as TV content, redirecting to series list", xbmc.LOGINFO)
-        
-        # For TV shows, redirect to structured series list
-        if media_type == "tvshow":
-            self._logger("Redirecting to show_series_list", xbmc.LOGINFO)
+            if self._handle_tvshow_browse(query):
+                return
+        elif media_type == "tvshow":
+            # For TV shows, redirect to structured series list
             self.show_series_list()
             return
             
@@ -456,44 +490,31 @@ class Plugin:
             start_offset=offset,
         )
         if not items:
-            xbmcplugin.endOfDirectory(self.handle)
-            if offset == 0:
-                self.notify(self._localized(32020), level=xbmc.LOGINFO)
+            self._end_directory_with_message(32020)
             return
+
         # If only a few items found and it's a direct search, show stream selection
         if query and len(items) <= 10 and not has_more:
-            # Show stream selection dialog for direct search results
-            self._show_stream_selection_for_browse(items, query)
+            self._show_smart_stream_selection(items, query=query)
             return
             
-        for item in items:
-            list_item = self._create_list_item(item, media_type)
-            url = self.build_url({"action": "play", "ident": item.ident, "media_type": media_type})
-            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        self._populate_directory_with_items(items, media_type)
+
         if has_more:
-            params = {
+            next_page_params = {
                 "action": "browse",
                 "media_type": media_type,
                 "query": query,
                 "letter": letter,
                 "genre": genre,
                 "sort": sort,
+                "quality": quality,
+                "audio": audio,
+                "subtitles": subtitles,
                 "offset": next_offset,
             }
-            if quality is not None:
-                params["quality"] = quality
-            if audio is not None:
-                params["audio"] = audio
-            if subtitles is not None:
-                params["subtitles"] = subtitles
-            params = {k: v for k, v in params.items() if v not in (None, "")}
-            next_url = self.build_url(params)
-            xbmcplugin.addDirectoryItem(
-                self.handle,
-                next_url,
-                xbmcgui.ListItem(label=self._localized(32010)),
-                isFolder=True,
-            )
+            self._add_next_page_item(next_page_params)
+
         xbmcplugin.endOfDirectory(self.handle)
 
     def play_item(self) -> None:
@@ -517,7 +538,47 @@ class Plugin:
             return
         list_item = xbmcgui.ListItem(path=link)
         list_item.setProperty("IsPlayable", "true")
+
+        if self.trakt_api:
+            media_type = self.params.get("media_type")
+            tmdb_id = self.params.get("tmdb_id")
+            season = self.params.get("season")
+            episode = self.params.get("episode")
+            player = TraktPlayer(self.trakt_api, media_type, tmdb_id, season, episode)
+            player.onPlayBackStarted()
+            while player.isPlaying():
+                player.onAVStarted()
+                xbmc.sleep(1000)
+            player.onPlayBackEnded()
+
         xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+
+class TraktPlayer(xbmc.Player):
+    def __init__(self, trakt_api, media_type, tmdb_id, season=None, episode=None):
+        super().__init__()
+        self.trakt_api = trakt_api
+        self.media_type = media_type
+        self.tmdb_id = tmdb_id
+        self.season = season
+        self.episode = episode
+        self.scrobbled = False
+
+    def onAVStarted(self):
+        if self.trakt_api and self.tmdb_id:
+            progress = self.getTime() / self.getTotalTime() * 100
+            self.trakt_api.scrobble(self.media_type, self.tmdb_id, progress, self.season, self.episode)
+
+    def onPlayBackEnded(self):
+        if self.trakt_api and self.tmdb_id and not self.scrobbled:
+            self.trakt_api.add_to_history(self.media_type, self.tmdb_id, self.season, self.episode)
+            self.scrobbled = True
+
+    def onPlayBackStopped(self):
+        if self.trakt_api and self.tmdb_id and not self.scrobbled:
+            progress = self.getTime() / self.getTotalTime() * 100
+            if progress > 80:
+                self.trakt_api.add_to_history(self.media_type, self.tmdb_id, self.season, self.episode)
+                self.scrobbled = True
 
     def show_series_list(self) -> None:
         """Show list of TV series - optimized for search."""
@@ -1047,11 +1108,12 @@ class Plugin:
             return
         
         # Show stream selection dialog
-        self._show_stream_selection(items, f"{series_name} S{season}E{episode}")
+        self._show_smart_stream_selection(items, query=query, series_name=series_name, season=int(season), episode=int(episode))
     
-    def _show_stream_selection(self, items, title="Vyberte stream"):
-        """Show stream selection dialog with quality info."""
+    def _show_smart_stream_selection(self, items, query: str, series_name: str = None, season: int = None, episode: int = None):
+        """Filter items to find best matches and show stream selection dialog."""
         from .stream_selector import StreamSelectorDialog
+        from .parser import parse_title
         
         # Convert catalogue items to stream format
         streams = []
@@ -1064,60 +1126,60 @@ class Plugin:
             }
             streams.append(stream_info)
         
+        # --- Smart Filtering Logic ---
+        filtered_streams = []
+        # Parse the original query to get a baseline (title, year)
+        query_parts = parse_title(query)
+        query_title = query_parts.get('title', query).lower()
+        query_year = query_parts.get('year')
+
+        self._logger(f"Filtering streams against query: '{query_title}' ({query_year})", xbmc.LOGINFO)
+
+        for stream in streams:
+            item = stream['item']
+            item_title = item.cleaned_title.lower()
+            
+            # Basic title similarity check
+            if query_title not in item_title and item_title not in query_title:
+                continue
+
+            # If it's a TV show, perform stricter checks
+            if series_name and season is not None and episode is not None:
+                if not (item.season == season and item.episode == episode):
+                    continue # Must match season and episode
+            
+            # If it's a movie, check the year
+            elif media_type == "movie" and query_year and item.guessed_year:
+                if abs(item.guessed_year - query_year) > 1:
+                    continue # Year must be very close
+
+            filtered_streams.append(stream)
+
+        self._logger(f"Filtered {len(streams)} streams down to {len(filtered_streams)} matches.", xbmc.LOGINFO)
+
+        if not filtered_streams:
+            self.notify(f"Nenalezeny žádné přesné shody pro '{query}'", level=xbmc.LOGINFO)
+            return
+
         # Show selection dialog
-        selector = StreamSelectorDialog(streams)
+        selector = StreamSelectorDialog(filtered_streams)
         selected_stream = selector.show_selection_dialog()
         
         if selected_stream:
-            # Play selected stream
             item = selected_stream['item']
-            self._play_item(item)
+            tmdb_id = item.metadata.get("tmdb_id") if item.metadata else None
+            self._play_item(item, tmdb_id=tmdb_id, season=item.season, episode=item.episode)
     
-    def _play_item(self, item):
+    def _play_item(self, item, tmdb_id=None, season=None, episode=None):
         """Play media item using the standard plugin method."""
         try:
             # Use the existing play_item method which handles Webshare API properly
-            self.params = {"ident": item.ident, "media_type": item.media_type}
+            self.params = {"ident": item.ident, "media_type": item.media_type, "tmdb_id": tmdb_id, "season": season, "episode": episode}
             self.play_item()
             
         except Exception as e:
             self._logger(f"Error playing item: {e}", xbmc.LOGERROR)
             self.notify("Chyba při přehrávání", level=xbmc.LOGERROR)
-    
-    def _show_stream_selection_for_browse(self, items, query):
-        """Show stream selection for browse results (fallback to directory if selection fails)."""
-        try:
-            from .stream_selector import StreamSelectorDialog
-            
-            # Convert items to stream format
-            streams = []
-            for item in items:
-                stream_info = {
-                    'name': item.original_name,  # MediaItem uses original_name
-                    'size': getattr(item, 'size', 0),
-                    'ident': item.ident,
-                    'item': item
-                }
-                streams.append(stream_info)
-            
-            # Show selection dialog
-            selector = StreamSelectorDialog(streams)
-            selected_stream = selector.show_selection_dialog()
-            
-            if selected_stream:
-                # Play selected stream
-                item = selected_stream['item']
-                self._play_item(item)
-            else:
-                # User cancelled - show as regular directory
-                self._show_items_as_directory(items)
-                
-        except ImportError:
-            # Fallback to regular directory if stream_selector not available
-            self._show_items_as_directory(items)
-        except Exception as e:
-            self._logger(f"Error in stream selection: {e}", xbmc.LOGERROR)
-            self._show_items_as_directory(items)
     
     def _show_items_as_directory(self, items):
         """Show items as regular Kodi directory."""
@@ -1432,6 +1494,11 @@ class Plugin:
             next_params["page"] = str(page + 1)
             next_url = self.build_url(next_params)
             next_item = xbmcgui.ListItem(label=f"▶️ Další strana ({page + 1})")
-            xbmcplugin.addDirectoryItem(self.handle, next_url, next_item, isFolder=True)
-        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def trakt_authorize(self) -> None:
+        """Authorize the addon with Trakt.tv."""
+        if self.trakt_api:
+            self.trakt_api.authorize()
+
         xbmcplugin.endOfDirectory(self.handle)

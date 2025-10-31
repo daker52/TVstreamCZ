@@ -1,104 +1,38 @@
-# TVStreamCZ Kodi Plugin
+# TVStreamCZ Kodi Add-on
 
-![TVStreamCZ](https://img.shields.io/badge/Kodi-21.x-blue?logo=kodi)
+Streamovací doplněk pro Webshare.cz pro Kodi.
 
-**TVStreamCZ** je moderní český plugin pro Kodi, který umožňuje pohodlné sledování filmů a seriálů z Webshare.cz s bohatou integrací metadat (TMDb, ČSFD) a profesionálním výběrem streamů.
+## Funkce
 
----
-
-## Hlavní funkce
-
-- **Vyhledávání filmů a seriálů** s automatickým rozpoznáním typu obsahu
-- **Hierarchická navigace** v seriálech (sezóny, epizody)
-- **Profesionální výběr streamu** (kvalita, velikost, audio, jazyk)
-- **Filtrování podle žánru, kvality, zvuku, titulků**
-- **Metadata z TMDb a ČSFD** (popisy, plakáty, hodnocení, žánry)
-- **Kategorie: Populární, Nejlépe hodnocené, Právě v kinech, Novinky, Top 10, podle žánru**
-- **Podpora češtiny a angličtiny**
-- **Automatická detekce CZ/EN/SK audio**
-- **Rychlé vyhledávání přes Webshare API**
-- **Správná struktura ZIP pro instalaci v Kodi**
-
----
+*   Procházení filmů a seriálů na Webshare.cz
+*   Vyhledávání filmů a seriálů
+*   Filtrování podle kvality, jazyka a titulků
+*   Podpora pro přihlášení k účtu Webshare.cz
+*   Obohacení metadat z TMDb a ČSFD
+*   Integrace s Trakt.tv pro synchronizaci historie sledování
 
 ## Instalace
 
-1. Stáhněte ZIP balíček z [releases](https://github.com/daker52/TVstreamCZ/releases)
-2. V Kodi zvolte `Doplňky` > `Instalovat ze souboru ZIP`
-3. Vyberte stažený ZIP soubor
-4. Plugin najdete v sekci `Doplňky > Video`
-
----
+1.  Stáhněte si nejnovější verzi doplňku ze stránky [releases](https://github.com/your-username/plugin.video.tvstreamcz/releases).
+2.  Otevřete Kodi a přejděte do "Doplňky".
+3.  Klikněte na ikonu "Instalovat ze souboru zip".
+4.  Vyberte stažený soubor a potvrďte instalaci.
 
 ## Nastavení
 
-- Vložte své přihlašovací údaje k Webshare.cz
-- (Volitelné) Zadejte TMDb API klíč pro lepší metadata
-- Vyberte preferovaný jazyk metadat (cz/en)
+Po instalaci je třeba doplněk nakonfigurovat:
 
----
+1.  Otevřete nastavení doplňku.
+2.  V sekci "Účet Webshare" zadejte své přihlašovací údaje.
+3.  (Volitelné) V sekci "Metadata" zadejte svůj TMDb API klíč pro obohacení metadat.
 
-## Metadata kategorie
+### Integrace s Trakt.tv
 
-### Filmy
-- Populární
-- Nejlépe hodnocené
-- Právě v kinech
-- Novinky
-- Podle žánru
+Pro synchronizaci historie sledování s Trakt.tv postupujte následovně:
 
-### Seriály
-- Populární
-- Nejlépe hodnocené
-- Vysílané dnes
-- Aktuálně vysílané
-- Podle žánru
-
----
-
-## Výběr streamu
-
-Při výběru souboru se zobrazí dialog s přehledem kvality, velikosti a audio informací (podobně jako Stream Cinema).
-
-- **Kvalita:** 4K/2160p, 1080p, 720p, CAM, atd.
-- **Velikost:** v GB/MB
-- **Audio:** kodek, kanály, jazyk (CZ/EN/SK)
-
----
-
-## Vývoj
-
-- [GitHub repozitář](https://github.com/daker52/TVstreamCZ)
-- Pull requesty vítány!
-
----
-
-## Licence
-
-MIT
-
----
-
-## Autoři
-
-- [daker52](https://github.com/daker52)
-- [další přispěvatelé vítáni]
-
----
-
-## FAQ
-
-**Q: Proč nevidím metadata?**
-- Zkontrolujte, že máte správně nastavený TMDb API klíč a internetové připojení.
-
-**Q: Proč nefunguje přehrávání?**
-- Ověřte, že máte aktivní Webshare účet a správně zadané přihlašovací údaje.
-
-**Q: Jak přidat další zdroje metadat?**
-- Plugin podporuje hybridní režim TMDb/ČSFD, další lze přidat rozšířením `metadata.py`.
-
----
-
-## Podpora
-
-Pro nahlášení chyb nebo návrhy na vylepšení použijte [issues](https://github.com/daker52/TVstreamCZ/issues) na GitHubu.
+1.  Vytvořte si aplikaci na [Trakt.tv](https://trakt.tv/oauth/applications/new).
+2.  Zadejte "urn:ietf:wg:oauth:2.0:oob" jako "Redirect uri".
+3.  Zkopírujte "Client ID" a "Client Secret".
+4.  Otevřete soubor `resources/lib/trakt_api.py` a vložte své klíče do proměnných `CLIENT_ID` a `CLIENT_SECRET`.
+5.  V nastavení doplňku v sekci "Integrace Trakt.tv" povolte integraci a klikněte na "Autorizovat Trakt.tv".
+6.  Postupujte podle pokynů na obrazovce.

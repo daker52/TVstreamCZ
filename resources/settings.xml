@@ -23,4 +23,10 @@
         <setting id="download_type" type="enum" label="32056" values="video_stream|file_download" lvalues="32057|32058" default="0" />
         <setting id="force_https" type="bool" label="32059" default="true" />
     </category>
+    <category label="32060">
+        <setting id="trakt_enabled" type="bool" label="32061" default="false" />
+        <setting id="trakt_token" type="text" label="Trakt Token" visible="false" default="" />
+        <setting id="trakt_refresh_token" type="text" label="Trakt Refresh Token" visible="false" default="" />
+        <setting id="trakt_authorize" type="action" label="32062" action="RunPlugin(plugin://plugin.video.tvstreamcz/?action=trakt_authorize)" />
+    </category>
 </settings>

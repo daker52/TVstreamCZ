@@ -1,5 +1,6 @@
 """Stream selection dialog for choosing quality and other parameters."""
 
+from collections import defaultdict
 import xbmcgui
 
 
@@ -19,19 +20,41 @@ class StreamSelectorDialog:
             # Only one option, return it directly
             return self.streams[0]
         
-        # Build display list with quality info
-        display_items = []
+        # Group streams by quality
+        grouped_streams = defaultdict(list)
         for stream in self.streams:
-            display_text = self._build_display_text(stream)
-            display_items.append(display_text)
+            quality = self._extract_quality(stream.get('name', '')) or 'Other'
+            grouped_streams[quality].append(stream)
+
+        # Sort qualities (e.g., 4K, 1080p, 720p...)
+        quality_order = ['4K', '1440p', '1080p', '720p', '576p', '480p', 'BluRay', 'Web-DL', 'WebRip', 'DVDRip', 'TS', 'CAM', 'Other']
+        sorted_qualities = sorted(grouped_streams.keys(), key=lambda q: quality_order.index(q) if q in quality_order else 99)
+
+        display_items = []
+        flat_streams = []
+
+        for quality in sorted_qualities:
+            streams_in_group = grouped_streams[quality]
+            # Add a header for the quality group
+            display_items.append(f"[B][COLOR yellow]== {quality} ({len(streams_in_group)}x) ==[/COLOR][/B]")
+            flat_streams.append(None) # Placeholder for header
+
+            # Sort streams within the group by size (descending)
+            streams_in_group.sort(key=lambda s: s.get('size', 0), reverse=True)
+
+            for stream in streams_in_group:
+                display_text = self._build_display_text(stream)
+                display_items.append(display_text)
+                flat_streams.append(stream)
         
         # Show selection dialog
         selected_index = self.dialog.select("Vyberte stream", display_items)
         
-        if selected_index >= 0:
-            return self.streams[selected_index]
+        # Handle selection
+        if selected_index >= 0 and flat_streams[selected_index] is not None:
+            return flat_streams[selected_index]
         
-        return None  # User cancelled
+        return None  # User cancelled or selected a header
     
     def _build_display_text(self, stream):
         """Build display text for a stream with quality and size info."""
@@ -43,28 +66,22 @@ class StreamSelectorDialog:
         size_str = self._format_size(size)
         
         # Extract quality from filename
-        quality = self._extract_quality(filename)
+        # quality = self._extract_quality(filename) # Quality is now in the header
         
         # Extract audio info
         audio = self._extract_audio(filename)
         
         # Build display string
         parts = []
-        
-        if quality:
-            parts.append(f"[COLOR yellow][{quality}][/COLOR]")
-        
         if size_str:
             parts.append(f"[COLOR cyan][B]{size_str}[/B][/COLOR]")
-            
         if audio:
             parts.append(f"[COLOR lime][I]{audio}[/I][/COLOR]")
         
-        # Add filename (shortened)
-        short_name = filename[:50] + "..." if len(filename) > 53 else filename
-        parts.append(short_name)
+        # Add filename
+        parts.append(filename)
         
-        return "  ".join(parts)
+        return " | ".join(parts)
     
     def _format_size(self, size_bytes):
         """Format file size in human readable format."""

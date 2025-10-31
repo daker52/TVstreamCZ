@@ -10,6 +10,7 @@ from typing import Dict, Iterable, List, Optional
 import requests
 import xbmc
 
+from . import cache
 from .parser import MediaItem
 
 _TMDb_IMAGE_BASE = "https://image.tmdb.org/t/p/"
@@ -126,6 +127,13 @@ class TMDbMetadataProvider(MetadataProvider):
         return scored[0] if scored else None
 
     def enrich(self, item: MediaItem) -> Optional[Dict[str, object]]:
+        # Use persistent cache for enrichment
+        cache_key = f"tmdb.enrich.{item.media_type}.{self._normalise(item.cleaned_title)}.{item.guessed_year or 'any'}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            self._logger(f"Enrich (TMDb): Found in cache for key '{cache_key}'", xbmc.LOGDEBUG)
+            return cached_data
+
         candidate = self._search(item.media_type, item)
         if not candidate:
             return None
@@ -165,16 +173,27 @@ class TMDbMetadataProvider(MetadataProvider):
         }
         if item.media_type == "tvshow":
             metadata["tvshowtitle"] = title
+        
+        # Save to persistent cache (e.g., for 24 hours)
+        cache.set(cache_key, metadata, expiration_minutes=60 * 24)
         return metadata
 
     def get_genres(self, media_type: str) -> Optional[List[str]]:
         if media_type in self._genre_cache:
             return self._genre_cache[media_type]
+        
+        # Use persistent cache for genres
+        cache_key = f"tmdb.genres.{media_type}.{self._ctx.language}"
+        cached_genres = cache.get(cache_key)
+        if cached_genres:
+            return cached_genres
+
         endpoint = "genre/movie/list" if media_type == "movie" else "genre/tv/list"
         data = self._request(endpoint)
         if not data or not data.get("genres"):
             return None
         names = [genre.get("name") for genre in data["genres"] if genre.get("name")]
+        cache.set(cache_key, names, expiration_minutes=60 * 24 * 7) # Cache genres for a week
         self._genre_cache[media_type] = names
         return names
     
@@ -285,51 +304,87 @@ class TMDbMetadataProvider(MetadataProvider):
     
     def get_popular_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get popular movies from TMDb."""
+        cache_key = f"tmdb.popular_movies.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data = self._request("movie/popular", {"page": page})
         if not data or not data.get("results"):
             return None
-        return self._format_movie_results(data["results"])
+        results = self._format_movie_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 4) # Cache for 4 hours
+        return results
     
     def get_top_rated_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get top rated movies from TMDb."""
+        cache_key = f"tmdb.top_rated_movies.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data = self._request("movie/top_rated", {"page": page})
         if not data or not data.get("results"):
             return None
-        return self._format_movie_results(data["results"])
+        results = self._format_movie_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 12) # Cache for 12 hours
+        return results
     
     def get_now_playing_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get movies currently in theaters."""
+        cache_key = f"tmdb.now_playing_movies.{self._ctx.language}.{self._ctx.region}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         params = {"page": page}
         if self._ctx.region:
             params["region"] = self._ctx.region
         data = self._request("movie/now_playing", params)
         if not data or not data.get("results"):
             return None
-        return self._format_movie_results(data["results"])
+        results = self._format_movie_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 6) # Cache for 6 hours
+        return results
     
     def get_upcoming_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get upcoming movies."""
+        cache_key = f"tmdb.upcoming_movies.{self._ctx.language}.{self._ctx.region}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         params = {"page": page}
         if self._ctx.region:
             params["region"] = self._ctx.region
         data = self._request("movie/upcoming", params)
         if not data or not data.get("results"):
             return None
-        return self._format_movie_results(data["results"])
+        results = self._format_movie_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 24) # Cache for 24 hours
+        return results
     
     def get_popular_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get popular TV shows from TMDb."""
+        cache_key = f"tmdb.popular_tv.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data = self._request("tv/popular", {"page": page})
         if not data or not data.get("results"):
             return None
-        return self._format_tv_results(data["results"])
+        results = self._format_tv_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 4) # Cache for 4 hours
+        return results
     
     def get_top_rated_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get top rated TV shows from TMDb."""
+        cache_key = f"tmdb.top_rated_tv.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data = self._request("tv/top_rated", {"page": page})
         if not data or not data.get("results"):
             return None
-        return self._format_tv_results(data["results"])
+        results = self._format_tv_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 12) # Cache for 12 hours
+        return results
     
     def get_airing_today_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get TV shows airing today."""
@@ -340,36 +395,60 @@ class TMDbMetadataProvider(MetadataProvider):
     
     def get_on_the_air_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get TV shows currently on the air."""
+        cache_key = f"tmdb.on_the_air_tv.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         data = self._request("tv/on_the_air", {"page": page})
         if not data or not data.get("results"):
             return None
-        return self._format_tv_results(data["results"])
+        results = self._format_tv_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 2) # Cache for 2 hours
+        return results
     
     def get_movies_by_genre(self, genre_id: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get movies by genre."""
+        cache_key = f"tmdb.movies_by_genre.{genre_id}.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         params = {"with_genres": genre_id, "page": page, "sort_by": "popularity.desc"}
         if self._ctx.region:
             params["region"] = self._ctx.region
         data = self._request("discover/movie", params)
         if not data or not data.get("results"):
             return None
-        return self._format_movie_results(data["results"])
+        results = self._format_movie_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 6) # Cache for 6 hours
+        return results
     
     def get_tv_shows_by_genre(self, genre_id: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
         """Get TV shows by genre."""
+        cache_key = f"tmdb.tv_by_genre.{genre_id}.{self._ctx.language}.{page}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         params = {"with_genres": genre_id, "page": page, "sort_by": "popularity.desc"}
         data = self._request("discover/tv", params)
         if not data or not data.get("results"):
             return None
-        return self._format_tv_results(data["results"])
+        results = self._format_tv_results(data["results"])
+        cache.set(cache_key, results, expiration_minutes=60 * 6) # Cache for 6 hours
+        return results
     
     def get_genre_list(self, media_type: str) -> Optional[Dict[int, str]]:
         """Get list of genres with IDs."""
+        cache_key = f"tmdb.genre_list.{media_type}.{self._ctx.language}"
+        cached = cache.get(cache_key)
+        if cached:
+            return cached
         endpoint = "genre/movie/list" if media_type == "movie" else "genre/tv/list"
         data = self._request(endpoint)
         if not data or not data.get("genres"):
             return None
-        return {genre["id"]: genre["name"] for genre in data["genres"]}
+        genres = {genre["id"]: genre["name"] for genre in data["genres"]}
+        cache.set(cache_key, genres, expiration_minutes=60 * 24 * 7) # Cache for a week
+        return genres
     
     def _format_movie_results(self, results: List[Dict[str, object]]) -> List[Dict[str, object]]:
         """Format movie results with standard fields."""
@@ -581,12 +660,19 @@ class CSFDMetadataProvider(MetadataProvider):
         return metadata
     
     def search_tv_series(self, series_name: str) -> Optional[Dict[str, object]]:
-        """Search for TV series on ČSFD with enhanced detection patterns."""
+        """Search for TV series on ČSFD with enhanced detection patterns and caching."""
         from .title_mapping import CZECH_TO_ENGLISH_MAPPING
         
+        # Use persistent cache for series search
+        cache_key = f"csfd.search_series.{series_name.lower()}"
+        cached_data = cache.get(cache_key)
+        if cached_data:
+            self._logger(f"Search Series (ČSFD): Found in cache for key '{cache_key}'", xbmc.LOGDEBUG)
+            return cached_data
+
         # Try both original and English name
         search_terms = [series_name.lower()]
-        english_title = CZECH_TO_ENGLISH_MAPPING.get(series_name.lower())
+        english_title = CZECH_TO_ENGLISH_MAPPING.get(series_name.lower().strip())
         if english_title:
             search_terms.append(english_title)
         
@@ -628,6 +714,7 @@ class CSFDMetadataProvider(MetadataProvider):
                         # Get enhanced series details
                         series_data = self._get_series_details(series_url, series_title)
                         if series_data:
+                            cache.set(cache_key, series_data, expiration_minutes=60 * 24) # Cache for 1 day
                             return series_data
                 
                 # If no direct matches, try broader search in results
@@ -644,12 +731,14 @@ class CSFDMetadataProvider(MetadataProvider):
                         if self._is_likely_tv_series(series_url, title, search_term):
                             series_data = self._get_series_details(series_url, title.strip())
                             if series_data and series_data.get("seasons") and len(series_data["seasons"]) > 0:
+                                cache.set(cache_key, series_data, expiration_minutes=60 * 24)
                                 return series_data
                             
             except Exception as e:
                 self._logger(f"ČSFD search failed for '{search_term}': {e}", xbmc.LOGWARNING)
                 continue
         
+        cache.set(cache_key, None, expiration_minutes=60 * 4) # Cache negative result for 4 hours
         return None
     
     def _is_likely_tv_series(self, url: str, title: str, search_term: str) -> bool:
@@ -851,8 +940,9 @@ class MetadataManager:
 
     def has_providers(self) -> bool:
         return bool(self._providers)
-
+    
     def get_genres(self, media_type: str) -> Optional[List[str]]:
+        # This method is deprecated in favor of get_genre_list, but kept for compatibility
         for provider in self._providers:
             genres = provider.get_genres(media_type)
             if genres:
@@ -860,7 +950,9 @@ class MetadataManager:
         return None
 
     def enrich(self, item: MediaItem) -> Optional[Dict[str, object]]:
-        cache_key = (item.media_type, item.cleaned_title.lower(), item.guessed_year, item.season)
+        # The old in-memory cache is replaced by persistent cache inside each provider's enrich method.
+        # This cache_key is no longer used for persistent caching but can be kept for in-session caching.
+        cache_key = (item.media_type, item.cleaned_title.lower(), item.guessed_year or 0, item.season or 0)
         if cache_key in self._cache:
             cached = self._cache[cache_key]
             if cached:
@@ -1024,6 +1116,129 @@ class MetadataManager:
         for provider in self._providers:
             if hasattr(provider, 'get_genre_list'):
                 try:
+                    return provider.get_genre_list(media_type)
+                except Exception as exc:
+                    self._logger(f"Genre list fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+
+    def get_top_rated_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get top rated movies."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_top_rated_movies'):
+                try:
+                    return provider.get_top_rated_movies(page)
+                except Exception as exc:
+                    self._logger(f"Top rated movies fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_now_playing_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get movies currently in theaters."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_now_playing_movies'):
+                try:
+                    return provider.get_now_playing_movies(page)
+                except Exception as exc:
+                    self._logger(f"Now playing movies fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_upcoming_movies(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get upcoming movies."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_upcoming_movies'):
+                try:
+                    return provider.get_upcoming_movies(page)
+                except Exception as exc:
+                    self._logger(f"Upcoming movies fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_movies_by_genre(self, genre_id: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get movies by genre."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_movies_by_genre'):
+                try:
+                    return provider.get_movies_by_genre(genre_id, page)
+                except Exception as exc:
+                    self._logger(f"Movies by genre fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    # TV Show category methods
+    def get_popular_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get popular TV shows."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_popular_tv_shows'):
+                try:
+                    return provider.get_popular_tv_shows(page)
+                except Exception as exc:
+                    self._logger(f"Popular TV shows fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_top_rated_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get top rated TV shows."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_top_rated_tv_shows'):
+                try:
+                    return provider.get_top_rated_tv_shows(page)
+                except Exception as exc:
+                    self._logger(f"Top rated TV shows fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_airing_today_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get TV shows airing today."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_airing_today_tv_shows'):
+                try:
+                    return provider.get_airing_today_tv_shows(page)
+                except Exception as exc:
+                    self._logger(f"Airing today TV shows fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_on_the_air_tv_shows(self, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get TV shows currently on the air."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_on_the_air_tv_shows'):
+                try:
+                    return provider.get_on_the_air_tv_shows(page)
+                except Exception as exc:
+                    self._logger(f"On the air TV shows fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_tv_shows_by_genre(self, genre_id: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get TV shows by genre."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_tv_shows_by_genre'):
+                try:
+                    return provider.get_tv_shows_by_genre(genre_id, page)
+                except Exception as exc:
+                    self._logger(f"TV shows by genre fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+    
+    def get_genre_list(self, media_type: str) -> Optional[Dict[int, str]]:
+        """Get list of genres with IDs."""
+        cache_key = f"genre_list.{media_type}"
+        cached_list = cache.get(cache_key)
+        if cached_list:
+            self._logger(f"Genre list cache hit for {cache_key}", xbmc.LOGINFO)
+            return cached_list
+
+        self._logger(f"Genre list cache miss for {cache_key}", xbmc.LOGINFO)
+        for provider in self._providers:
+            if hasattr(provider, 'get_genre_list'):
+                try:
+                    genre_list = provider.get_genre_list(media_type)
+                    if genre_list:
+                        # Cache for 1 week
+                        cache.set(cache_key, genre_list, expiration_minutes=10080)
+                        return genre_list
                     return provider.get_genre_list(media_type)
                 except Exception as exc:
                     self._logger(f"Genre list fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)

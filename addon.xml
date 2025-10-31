@@ -17,5 +17,9 @@
         <description lang="en_GB">Kodi add-on that browses Webshare.cz movies and TV shows with account login, quality/language filters and optional metadata enrichment from TMDb/ČSFD.</description>
         <language>cs,en</language>
         <platform>all</platform>
+        <assets>
+            <icon>icon.jpeg</icon>
+            <fanart>icon.jpeg</fanart>
+        </assets>
     </extension>
 </addon>
