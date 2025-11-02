@@ -1,6 +1,52 @@
 <<<<<<< HEAD
-# TVstreamCZ
-addon for Kodi
+# TVStreamCZ Kodi Add-on 🎬🇨🇿
+
+TVStreamCZ je doplněk pro Kodi, který umožňuje pohodlně procházet a streamovat filmy a seriály z [Webshare.cz](https://webshare.cz/) s metadaty z TMDb a ČSFD.
+
+## ✨ Funkce
+
+- 🔑 Přihlášení k Webshare (bezpečné hashování hesla, automatické uložení relace)
+- 📺 Procházení filmů a seriálů: novinky, abecední seznam, filtry podle kvality, dabingu a titulků
+- 🏷️ Metadata z TMDb (plakáty, popisy, žánry, hodnocení) a ČSFD (lokalizované info)
+- 🔗 Streamování přes oficiální Webshare API (s volitelným vynucením HTTPS)
+- 🏷️ Automatická detekce kvality (HD/UHD/SD), jazyků audia (CZ/SK/EN), titulků a dabingu přímo z názvu souboru (např. „CZ dabing“ nebo „EN dub“)
+- 🎚️ Rychlé filtry pro kvalitu, jazyk a titulky
+
+## 🛠️ Instalace
+
+1. Zkopírujte složku doplňku do adresáře Kodi add-ons (např. `~/.kodi/addons/plugin.video.tvstreamcz`)
+2. Restartujte Kodi nebo spusťte aktualizaci doplňků
+3. Otevřete *Doplňky → Video doplňky → TVStreamCZ*
+
+## ⚙️ Nastavení
+
+- **Webshare účet** – Zadejte své přihlašovací údaje (heslo je bezpečně hashováno)
+- **Výchozí filtry** – Nastavte si preferovanou kvalitu, jazyk a titulky
+- **Metadata** – Zvolte zdroj (TMDb/ČSFD), nastavte TMDb API klíč a preferovaný jazyk/region
+- **Streamování** – Zvolte režim stahování a případně vynucení HTTPS
+
+Po uložení nastavení dojde k ověření účtu a uložení tokenu pro další použití.
+
+## 💡 Tipy k použití
+
+- V menu *Filtry* rychle najdete obsah podle kvality nebo jazyka
+- Procházení podle žánru vyžaduje aktivní metadata (doporučeno TMDb)
+- Pokud přehrávání selže, zkontrolujte, zda má váš Webshare účet potřebná oprávnění
+
+## 🧑‍💻 Vývoj
+
+- Cílí na Kodi 20+ (Python 3)
+- Závislosti: `script.module.requests`
+- Struktura zdrojového kódu:
+  - `resources/lib/webshare_api.py` – API wrapper pro Webshare
+  - `resources/lib/parser.py` – heuristiky pro rozpoznání kvality, dabingu atd.
+  - `resources/lib/metadata.py` – metadata z TMDb/ČSFD
+  - `resources/lib/catalogue.py` – logika vyhledávání a filtrování
+  - `resources/lib/plugin.py` – hlavní logika a napojení na Kodi
+
+## ⚠️ Upozornění
+
+Doplněk využívá veřejné API Webshare a neoficiální HTML scraping ČSFD. Respektujte podmínky služeb a používejte doplněk zodpovědně.
 =======
 # TVStreamCZ Kodi Add-on
 
