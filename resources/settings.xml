@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <category label="32030">
+        <setting id="username" type="text" label="32031" default="" />
+        <setting id="password" type="text" label="32032" option="hidden" default="" />
+        <setting id="keep_logged_in" type="bool" label="32033" default="true" />
+        <setting id="session_token" type="text" visible="false" default="" />
+    </category>
+    <category label="32034">
+        <setting id="default_quality" type="enum" label="32035" values="any|hd|uhd|sd" lvalues="32036|32037|32038|32039" default="0" />
+        <setting id="default_audio" type="enum" label="32040" values="any|cz|sk|en" lvalues="32041|32014|32016|32015" default="0" />
+        <setting id="default_subtitles" type="enum" label="32052" values="any|cz|sk|en" lvalues="32041|32014|32016|32015" default="0" />
+        <setting id="page_size" type="number" label="32053" default="40" />
+    </category>
+    <category label="32042">
+        <setting id="metadata_provider" type="enum" label="32043" values="tmdb_first|csfd_first|tmdb_only|csfd_only|none" lvalues="32044|32045|32046|32047|32048" default="0" />
+        <setting id="tmdb_api_key" type="text" label="32049" default="" />
+        <setting id="metadata_language" type="text" label="32050" default="cs-CZ" />
+        <setting id="metadata_region" type="text" label="32051" default="CZ" />
+        <setting id="csfd_user_agent" type="text" label="32054" default="Mozilla/5.0 (Windows NT 10.0; Win64; x64)" />
+    </category>
+    <category label="32055">
+        <setting id="download_type" type="enum" label="32056" values="video_stream|file_download" lvalues="32057|32058" default="0" />
+        <setting id="force_https" type="bool" label="32059" default="true" />
+    </category>
+</settings>

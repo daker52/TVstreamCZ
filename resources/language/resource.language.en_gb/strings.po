@@ -1,0 +1,242 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
+msgctxt "#32000"
+msgid "Movies"
+msgstr "Movies"
+
+msgctxt "#32001"
+msgid "TV Shows"
+msgstr "TV Shows"
+
+msgctxt "#32002"
+msgid "Browse All"
+msgstr "Browse All"
+
+msgctxt "#32003"
+msgid "Browse by Alphabet"
+msgstr "Browse by Alphabet"
+
+msgctxt "#32004"
+msgid "Browse by Genre"
+msgstr "Browse by Genre"
+
+msgctxt "#32005"
+msgid "Browse by Quality"
+msgstr "Browse by Quality"
+
+msgctxt "#32006"
+msgid "Search"
+msgstr "Search"
+
+msgctxt "#32007"
+msgid "Enter search query"
+msgstr "Enter search query"
+
+msgctxt "#32008"
+msgid "Login required. Please configure your Webshare credentials in the add-on settings."
+msgstr "Login required. Please configure your Webshare credentials in the add-on settings."
+
+msgctxt "#32009"
+msgid "Unable to fetch data from Webshare."
+msgstr "Unable to fetch data from Webshare."
+
+msgctxt "#32010"
+msgid "Next page"
+msgstr "Next page"
+
+msgctxt "#32011"
+msgid "Audio languages"
+msgstr "Audio languages"
+
+msgctxt "#32012"
+msgid "Subtitle languages"
+msgstr "Subtitle languages"
+
+msgctxt "#32013"
+msgid "Quality filter"
+msgstr "Quality filter"
+
+msgctxt "#32014"
+msgid "Czech"
+msgstr "Czech"
+
+msgctxt "#32015"
+msgid "English"
+msgstr "English"
+
+msgctxt "#32016"
+msgid "Slovak"
+msgstr "Slovak"
+
+msgctxt "#32017"
+msgid "High Definition"
+msgstr "High Definition"
+
+msgctxt "#32018"
+msgid "Ultra HD / 4K"
+msgstr "Ultra HD / 4K"
+
+msgctxt "#32019"
+msgid "Standard Definition"
+msgstr "Standard Definition"
+
+msgctxt "#32020"
+msgid "No items matched the current filters."
+msgstr "No items matched the current filters."
+
+msgctxt "#32021"
+msgid "Filter movies by letter"
+msgstr "Filter movies by letter"
+
+msgctxt "#32022"
+msgid "Filter shows by letter"
+msgstr "Filter shows by letter"
+
+msgctxt "#32023"
+msgid "Recently added"
+msgstr "Recently added"
+
+msgctxt "#32024"
+msgid "My Account"
+msgstr "My Account"
+
+msgctxt "#32025"
+msgid "Logout"
+msgstr "Logout"
+
+msgctxt "#32026"
+msgid "Metadata provider disabled"
+msgstr "Metadata provider disabled"
+
+msgctxt "#32027"
+msgid "Filters"
+msgstr "Filters"
+
+msgctxt "#32028"
+msgid "Quality"
+msgstr "Quality"
+
+msgctxt "#32029"
+msgid "Languages"
+msgstr "Languages"
+
+msgctxt "#32030"
+msgid "Webshare account"
+msgstr "Webshare account"
+
+msgctxt "#32031"
+msgid "Username or email"
+msgstr "Username or email"
+
+msgctxt "#32032"
+msgid "Password"
+msgstr "Password"
+
+msgctxt "#32033"
+msgid "Keep me signed in"
+msgstr "Keep me signed in"
+
+msgctxt "#32034"
+msgid "Default filters"
+msgstr "Default filters"
+
+msgctxt "#32035"
+msgid "Default quality filter"
+msgstr "Default quality filter"
+
+msgctxt "#32036"
+msgid "Any quality"
+msgstr "Any quality"
+
+msgctxt "#32037"
+msgid "HD (720p/1080p)"
+msgstr "HD (720p/1080p)"
+
+msgctxt "#32038"
+msgid "UHD / 4K"
+msgstr "UHD / 4K"
+
+msgctxt "#32039"
+msgid "SD"
+msgstr "SD"
+
+msgctxt "#32040"
+msgid "Default audio language"
+msgstr "Default audio language"
+
+msgctxt "#32041"
+msgid "Any language"
+msgstr "Any language"
+
+msgctxt "#32042"
+msgid "Metadata"
+msgstr "Metadata"
+
+msgctxt "#32043"
+msgid "Metadata provider"
+msgstr "Metadata provider"
+
+msgctxt "#32044"
+msgid "TMDb first, ČSFD fallback"
+msgstr "TMDb first, ČSFD fallback"
+
+msgctxt "#32045"
+msgid "ČSFD first, TMDb fallback"
+msgstr "ČSFD first, TMDb fallback"
+
+msgctxt "#32046"
+msgid "TMDb only"
+msgstr "TMDb only"
+
+msgctxt "#32047"
+msgid "ČSFD only"
+msgstr "ČSFD only"
+
+msgctxt "#32048"
+msgid "No metadata"
+msgstr "No metadata"
+
+msgctxt "#32049"
+msgid "TMDb API key"
+msgstr "TMDb API key"
+
+msgctxt "#32050"
+msgid "Metadata language (e.g. cs-CZ)"
+msgstr "Metadata language (e.g. cs-CZ)"
+
+msgctxt "#32051"
+msgid "Metadata region (e.g. CZ)"
+msgstr "Metadata region (e.g. CZ)"
+
+msgctxt "#32052"
+msgid "Default subtitle language"
+msgstr "Default subtitle language"
+
+msgctxt "#32053"
+msgid "Items per page"
+msgstr "Items per page"
+
+msgctxt "#32054"
+msgid "ČSFD User-Agent header"
+msgstr "ČSFD User-Agent header"
+
+msgctxt "#32055"
+msgid "Streaming"
+msgstr "Streaming"
+
+msgctxt "#32056"
+msgid "Download mode"
+msgstr "Download mode"
+
+msgctxt "#32057"
+msgid "Stream video"
+msgstr "Stream video"
+
+msgctxt "#32058"
+msgid "Download file"
+msgstr "Download file"
+
+msgctxt "#32059"
+msgid "Force HTTPS links"
+msgstr "Force HTTPS links"
