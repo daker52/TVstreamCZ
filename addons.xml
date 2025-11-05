@@ -1,5 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addons>
+  <addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.0" provider-name="daker52">
+    <requires>
+      <import addon="xbmc.addon" version="12.0.0"/>
+    </requires>
+    <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
+      <dir>
+        <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/addons.xml</info>
+        <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/addons.xml.md5</checksum>
+        <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/</datadir>
+      </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+      <summary lang="cs_CZ">TVStreamCZ Addon Repository</summary>
+      <summary lang="en_GB">TVStreamCZ Addon Repository</summary>
+      <description lang="cs_CZ">Oficiální repozitář pro TVStreamCZ doplňky. Obsahuje plugin pro sledování obsahu z Webshare.cz s automatickými aktualizacemi a historií přehrávání.</description>
+      <description lang="en_GB">Official repository for TVStreamCZ addons. Contains plugin for streaming content from Webshare.cz with automatic updates and playback history.</description>
+      <disclaimer lang="cs_CZ">Autoři nenesou odpovědnost za obsah streamovaný prostřednictvím tohoto doplňku. Používejte pouze legální obsah.</disclaimer>
+      <disclaimer lang="en_GB">The authors are not responsible for content streamed through this addon. Use only legal content.</disclaimer>
+      <platform>all</platform>
+      <assets>
+        <icon>icon.png</icon>
+        <fanart>fanart.jpg</fanart>
+      </assets>
+    </extension>
+  </addon>
+  <addon id="plugin.video.tvstreamcz" name="TVStreamCZ" version="0.1.1" provider-name="TVStreamCZ">
+    <requires>
+      <import addon="xbmc.python" version="3.0.0"/>
+      <import addon="script.module.requests" version="2.27.1"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="addon.py">
+      <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+      <summary lang="cs_CZ">Streamovací doplněk pro Webshare.cz</summary>
+      <summary lang="en_GB">Streaming add-on for Webshare.cz</summary>
+      <description lang="cs_CZ">Doplněk pro Kodi zpřístupňující filmy a seriály uložené na Webshare.cz včetně přihlášení, filtrů kvality a metadat z TMDb/ČSFD.</description>
+      <description lang="en_GB">Kodi add-on that browses Webshare.cz movies and TV shows with account login, quality/language filters and optional metadata enrichment from TMDb/ČSFD.</description>
+      <language>cs,en</language>
+      <platform>all</platform>
+    </extension>
+  </addon>
   <addon id="plugin.video.tvstreamcz" name="TVStreamCZ" version="0.1.1" provider-name="TVStreamCZ">
     <requires>
       <import addon="xbmc.python" version="3.0.0"/>
