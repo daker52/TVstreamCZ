@@ -1,0 +1,38 @@
+# TVStreamCZ Plugin - Changelog
+
+## Version 0.1.1 (2024-11-05)
+### Přidáno
+- 📺 Historie přehrávání s automatickým zaznamenáváním
+- ⭐ Nejčastěji přehrávané položky
+- 💖 Oblíbené filmy a seriály
+- ⏸️ Pozastavené filmy s resume points
+- 📊 Statistiky přehrávání
+- 🗑️ Selektivní mazání historie
+
+### Opraveno
+- ✅ Prázdná historie - nyní se správně zaznamenávají přehrané položky
+- ✅ Dialog pro výběr streamů zachován dle požadavků uživatele
+- ✅ Lepší zpracování metadat pro názvy filmů a seriálů
+- ✅ Kontextové informace v play URL pro správné trackování
+
+### Vylepšeno
+- 🚀 Rychlejší načítání seriálů s metadata-first přístupem
+- 🎯 Lepší detekce dabingu a audio jazyků
+- 📱 Optimalizace pro různé velikosti stránek
+
+## Version 0.1.0 (2024-11-01)
+### Přidáno
+- 🎬 Základní funkcionalita streaming z Webshare.cz
+- 🔐 Přihlašování s uložením session token
+- 🎭 Metadata z TMDb a ČSFD
+- 🔍 Vyhledávání filmů a seriálů
+- 📺 Strukturované procházení sezón a epizod
+- 🎚️ Filtry kvality, zvuku a titulků
+- 🌍 Podpora češtiny a angličtiny
+- ⚙️ Konfigurační nastavení
+
+### Technické
+- Python 3.x kompatibilita
+- Kodi Matrix (19.x) a novější
+- Modulární architektura
+- Robustní error handling

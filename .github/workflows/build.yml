@@ -1,0 +1,41 @@
+name: Build TVStreamCZ Repository
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'plugin.video.tvstreamcz/**'
+      - 'addon.xml'
+      - 'generate_addons.py'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Generate addons.xml
+      run: |
+        python generate_addons.py
+    
+    - name: Commit updated files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add addons.xml addons.xml.md5
+        if ! git diff --staged --quiet; then
+          git commit -m "Auto-update addons.xml [skip ci]"
+          git push
+        else
+          echo "No changes to commit"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
