@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.0"
+       provider-name="daker52">
+  <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
+    <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml</info>
+    <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml.md5</checksum>
+    <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/</datadir>
+    <assets>
+      <icon></icon>
+    </assets>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs">Repozitář pro addon TVStreamCZ</summary>
+    <summary lang="en">Repository for TVStreamCZ addon</summary>
+    <description lang="cs">Umožňuje instalaci a automatické aktualizace addonu plugin.video.tvstreamcz.</description>
+    <description lang="en">Enables installation and automatic updates of plugin.video.tvstreamcz addon.</description>
+    <platform>all</platform>
+  </extension>
+</addon>
