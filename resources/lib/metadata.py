@@ -362,7 +362,25 @@ class TMDbMetadataProvider(MetadataProvider):
         if not data or not data.get("results"):
             return None
         return self._format_tv_results(data["results"])
-    
+
+    def get_movies_by_year(self, year: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get movies by release year."""
+        params = {"primary_release_year": year, "page": page, "sort_by": "popularity.desc"}
+        if self._ctx.region:
+            params["region"] = self._ctx.region
+        data = self._request("discover/movie", params)
+        if not data or not data.get("results"):
+            return None
+        return self._format_movie_results(data["results"])
+
+    def get_tv_shows_by_year(self, year: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get TV shows by first air year."""
+        params = {"first_air_date_year": year, "page": page, "sort_by": "popularity.desc"}
+        data = self._request("discover/tv", params)
+        if not data or not data.get("results"):
+            return None
+        return self._format_tv_results(data["results"])
+
     def get_genre_list(self, media_type: str) -> Optional[Dict[int, str]]:
         """Get list of genres with IDs."""
         endpoint = "genre/movie/list" if media_type == "movie" else "genre/tv/list"
@@ -1018,7 +1036,29 @@ class MetadataManager:
                     self._logger(f"TV shows by genre fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
                     continue
         return None
-    
+
+    def get_movies_by_year(self, year: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get movies by release year."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_movies_by_year'):
+                try:
+                    return provider.get_movies_by_year(year, page)
+                except Exception as exc:
+                    self._logger(f"Movies by year fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+
+    def get_tv_shows_by_year(self, year: int, page: int = 1) -> Optional[List[Dict[str, object]]]:
+        """Get TV shows by first air year."""
+        for provider in self._providers:
+            if hasattr(provider, 'get_tv_shows_by_year'):
+                try:
+                    return provider.get_tv_shows_by_year(year, page)
+                except Exception as exc:
+                    self._logger(f"TV shows by year fetch failed for {provider.name}: {exc}", xbmc.LOGWARNING)
+                    continue
+        return None
+
     def get_genre_list(self, media_type: str) -> Optional[Dict[int, str]]:
         """Get list of genres with IDs."""
         for provider in self._providers:

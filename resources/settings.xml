@@ -23,4 +23,12 @@
         <setting id="download_type" type="enum" label="32056" values="video_stream|file_download" lvalues="32057|32058" default="0" />
         <setting id="force_https" type="bool" label="32059" default="true" />
     </category>
+    <category label="SledujFilmy.io (FREE)">
+        <setting id="sledujfilmy_enabled" type="bool" label="Povolit SledujFilmy.io" default="true" />
+        <setting type="sep" />
+        <setting type="lsep" label="POZNÁMKA:" />
+        <setting type="lsep" label="Pro funkčnost je potřeba nainstalovat:" />
+        <setting type="lsep" label="cloudscraper, selenium, turnstile-solver" />
+        <setting type="lsep" label="(ZDARMA! Viz INSTALL_DEPENDENCIES.md)" />
+    </category>
 </settings>

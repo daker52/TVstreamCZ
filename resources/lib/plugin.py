@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import sys
 import urllib.parse
+import datetime
 from typing import Dict, Optional
 
 import xbmc
@@ -19,6 +20,7 @@ from .catalogue import WebshareCatalogue
 from .metadata import MetadataManager
 from .settings import AddonSettings
 from .webshare_api import WebshareAPI, WebshareAuthError, WebshareError
+from .sdilej_api import SdilejAPI
 
 
 class Plugin:
@@ -79,8 +81,20 @@ class Plugin:
             token = ""
         if token:
             self.api.set_token(token)
+
+        self.sdilej_api = SdilejAPI(logger=self._logger)
+
+        # Initialize Prehraj.to API (no login required for search)
+        try:
+            from .prehrajto_api import PrehrajtoAPI
+            self.prehrajto_api = PrehrajtoAPI(logger=self._logger)
+            self._logger("✓ Prehraj.to API initialized", xbmc.LOGINFO)
+        except Exception as exc:
+            self._logger(f"❌ Failed to initialize Prehraj.to API: {exc}", xbmc.LOGERROR)
+            self.prehrajto_api = None
+
         self.metadata = MetadataManager(self.settings, self._logger) if self.settings.metadata_provider != "none" else None
-        self.catalogue = WebshareCatalogue(self.api, self.metadata, self.settings, self._logger)
+        self.catalogue = WebshareCatalogue(self.api, self.metadata, self.settings, self._logger, sdilej_api=self.sdilej_api)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -126,9 +140,13 @@ class Plugin:
 
     def _detect_dubbing(self, name: str) -> str:
         """Detect dubbing language from filename or title."""
-        name_lower = name.lower()
-        cz_keywords = ["cz dab", "cz dabing", "cz dub", "cz audio", "cz zvuk", "cz zvuky", "cesky dabing", "český dabing", "cz-dab", "cz_dab"]
-        en_keywords = ["en dab", "en dub", "en audio", "en zvuk", "anglicky dabing", "anglický dabing", "en-dub", "en_dub"]
+        if not name or not isinstance(name, str):  # Handle None or non-string values
+            return ""
+        
+        # Replace dots and underscores with spaces for better matching
+        name_lower = name.lower().replace('.', ' ').replace('_', ' ')
+        cz_keywords = ["cz dab", "cz dabing", "cz dub", "cz audio", "cz zvuk", "cz zvuky", "cesky dabing", "český dabing", "cz-dab", "cz dab"]
+        en_keywords = ["en dab", "en dub", "en audio", "en zvuk", "anglicky dabing", "anglický dabing", "en-dub", "en dub"]
         for kw in cz_keywords:
             if kw in name_lower:
                 return "CZ dabing"
@@ -137,23 +155,54 @@ class Plugin:
                 return "EN dabing"
         return ""
 
-    def _create_list_item(self, item, media_type: Optional[str]) -> xbmcgui.ListItem:
+    def _get_seasonal_query(self, season: str) -> str:
+        """Generate search query for seasonal content."""
+        seasonal_keywords = {
+            "spring": ["jaro", "jarní", "spring", "easter", "velikonoce", "květen", "duben", "březen"],
+            "summer": ["léto", "letní", "summer", "dovolená", "prázdniny", "červen", "červenec", "srpen"],  
+            "autumn": ["podzim", "podzimní", "autumn", "fall", "září", "říjen", "listopad", "halloween"],
+            "winter": ["zima", "zimní", "winter", "vánoce", "christmas", "prosinec", "leden", "únor", "sníh"]
+        }
+        
+        keywords = seasonal_keywords.get(season, [])
+        if keywords:
+            # Use first few keywords for search
+            return " OR ".join(keywords[:3])
+        return ""
+
+    def _create_list_item(self, item, media_type: Optional[str], is_playable: bool = True) -> xbmcgui.ListItem:
         label = item.metadata.get("title") if item.metadata else item.cleaned_title
         if not label:
             label = item.cleaned_title
+            
+        # Determine provider
+        is_sdilej = getattr(item, "ident", "").startswith("http")
+        provider = "Sdilej" if is_sdilej else "Webshare"
+            
         suffix_parts = []
+        suffix_parts.append(provider)
+        
         if item.season is not None and item.episode is not None:
             suffix_parts.append(f"S{item.season:02d}E{item.episode:02d}")
-        if item.quality:
+        if item.quality and isinstance(item.quality, str):
             suffix_parts.append(item.quality.upper())
         if item.audio_languages:
-            suffix_parts.append("/".join(code.upper() for code in item.audio_languages))
+            suffix_parts.append("/".join(code.upper() for code in item.audio_languages if code and isinstance(code, str)))
         # Dabing detection
         dubbing = self._detect_dubbing(getattr(item, 'filename', label))
         if dubbing:
             suffix_parts.append(dubbing)
         if suffix_parts:
             label = f"{label} [{' | '.join(suffix_parts)}]"
+            
+        # Color coding based on provider
+        if is_sdilej:
+            # Sdilej.cz -> Orange
+            label = f"[COLOR orange]{label}[/COLOR]"
+        else:
+            # Webshare -> Blue (DeepSkyBlue for visibility)
+            label = f"[COLOR deepskyblue]{label}[/COLOR]"
+
         list_item = xbmcgui.ListItem(label=label)
         info: Dict[str, object] = {
             "title": item.metadata.get("title") if item.metadata else item.cleaned_title,
@@ -190,7 +239,11 @@ class Plugin:
         if not poster and item.preview_image:
             art["thumb"] = item.preview_image
         list_item.setArt(art)
-        list_item.setProperty("IsPlayable", "true")
+        if is_playable:
+            list_item.setProperty("IsPlayable", "true")
+            list_item.setProperty("SupportsRandomAccess", "false")
+            list_item.setProperty("CanPause", "true")
+            list_item.setProperty("CanSeek", "true")
         return list_item
 
     # ------------------------------------------------------------------
@@ -198,6 +251,7 @@ class Plugin:
     # ------------------------------------------------------------------
     def run(self) -> None:
         action = self.params.get("action")
+        self._logger(f"Plugin run() called with action: {action}, params: {self.params}", xbmc.LOGINFO)
         if action == "browse":
             self.show_browse()
         elif action == "media_root":
@@ -244,19 +298,74 @@ class Plugin:
             self.show_metadata_genre_tvshows()
         elif action == "metadata_content":
             self.show_metadata_content()
+        elif action == "seasonal_content":
+            self.show_seasonal_content()
+        elif action == "show_history":
+            self.show_history()
+        elif action == "show_recent":
+            self.show_recent_history()
+        elif action == "show_frequent":
+            self.show_frequent_history()
+        elif action == "show_favorites":
+            self.show_favorites()
+        elif action == "show_resume":
+            self.show_resume_points()
+        elif action == "show_stats":
+            self.show_playback_stats()
+        elif action == "clear_history":
+            self.clear_history()
+        elif action == "add_favorite":
+            self.add_to_favorites()
+        elif action == "quick_movie_search":
+            self.quick_movie_search()
+        elif action == "show_info":
+            self.show_info()
+        elif action == "show_settings":
+            self.show_settings()
+        elif action == "check_updates":
+            self.check_updates()
         elif action == "play":
+            self._logger("SUCCESS: 'play' action recognized, calling play_item()", xbmc.LOGINFO)
             self.play_item()
+        # Prehraj.to actions
+        elif action == "prehrajto_menu":
+            self.show_prehrajto_menu()
+        elif action == "prehrajto_search":
+            self.show_prehrajto_search()
+        elif action == "prehrajto_movies":
+            self.show_prehrajto_movies()
+        elif action == "prehrajto_tvshows":
+            self.show_prehrajto_tvshows()
+        elif action == "prehrajto_news":
+            self.show_prehrajto_news()
+        elif action == "prehrajto_browse":
+            self.show_prehrajto_browse()
+        elif action == "prehrajto_genres":
+            self.show_prehrajto_genres()
+        elif action == "prehrajto_genre_content":
+            self.show_prehrajto_genre_content()
+        elif action == "prehrajto_year_picker":
+            self.show_prehrajto_year_picker()
+        elif action == "prehrajto_year_content":
+            self.show_prehrajto_year_content()
+        elif action == "prehrajto_results":
+            self.show_prehrajto_results()
+        elif action == "play_prehrajto":
+            self.play_prehrajto()
         else:
+            self._logger(f"WARNING: Unknown action '{action}', showing root menu", xbmc.LOGWARNING)
             self.show_root()
 
     def show_root(self) -> None:
         xbmcplugin.setPluginCategory(self.handle, self.addon.getAddonInfo("name"))
         xbmcplugin.setContent(self.handle, "videos")
         entries = [
-            (self._localized(32000), {"action": "media_root", "media_type": "movie"}),
-            (self._localized(32001), {"action": "media_root", "media_type": "tvshow"}),
-            ("Vyhledávání pomocí ČSFD databáze", {"action": "metadata_categories"}),
-            (self._localized(32006), {"action": "search"}),
+            ("[COLOR deeppink]>>SPUSTIT<<[/COLOR]", {"action": "prehrajto_menu"}),
+            ("HISTORIE PŘEHRÁVÁNÍ",                                {"action": "show_history"}),
+            ("INFORMACE",                                          {"action": "show_info"}),
+            ("NASTAVENÍ PLUGINU",                                  {"action": "show_settings"}),
+            ("AKTUALIZACE",                                        {"action": "check_updates"}),
+            ("[COLOR gray]V PŘÍPRAVĚ[/COLOR]",                    {"action": "show_info"}),
         ]
         for label, query in entries:
             url = self.build_url(query)
@@ -478,9 +587,9 @@ class Plugin:
                     self.params["media_type"] = "tvshow"
                     self._logger("Detected as TV content, redirecting to series list", xbmc.LOGINFO)
         
-        # For TV shows, redirect to structured series list
-        if media_type == "tvshow":
-            self._logger("Redirecting to show_series_list", xbmc.LOGINFO)
+        # For TV shows, redirect to structured series list ONLY if no direct query specified
+        if media_type == "tvshow" and not query:
+            self._logger("Redirecting to show_series_list (no query)", xbmc.LOGINFO)
             self.show_series_list()
             return
             
@@ -491,9 +600,25 @@ class Plugin:
         genre = self.params.get("genre")
         sort = self.params.get("sort")
         query = self.params.get("query") or ""
+        seasonal = self.params.get("seasonal")
         offset = int(self.params.get("offset", "0"))
+        
+        # Handle seasonal content search
+        if seasonal:
+            query = self._get_seasonal_query(seasonal)
+        # Optimize page size for direct searches
+        page_size = 20  # Default page size
+        if query and offset == 0:  # Direct search, first page
+            if media_type == "movie":
+                page_size = 15  # Smaller for movies for faster loading
+            
         xbmcplugin.setPluginCategory(self.handle, self._localized(32000 if media_type == "movie" else 32001))
-        xbmcplugin.setContent(self.handle, "videos")
+        if media_type == "movie":
+            xbmcplugin.setContent(self.handle, "movies")
+        elif media_type == "tvshow":
+            xbmcplugin.setContent(self.handle, "episodes")
+        else:
+            xbmcplugin.setContent(self.handle, "videos")
         items, next_offset, total, has_more = self.catalogue.fetch(
             media_type=media_type,
             query=query,
@@ -504,24 +629,52 @@ class Plugin:
             subtitles=subtitles if subtitles != "any" else None,
             genre=genre,
             start_offset=offset,
+            page_size=page_size,
         )
         if not items:
             xbmcplugin.endOfDirectory(self.handle)
             if offset == 0:
                 self.notify(self._localized(32020), level=xbmc.LOGINFO)
             return
-        # If only a few items found and it's a direct search, show stream selection
-        if query and len(items) <= 10 and not has_more:
-            # Show stream selection dialog for direct search results
-            self._show_stream_selection_for_browse(items, query)
-            return
+        # If only a few items found and it's a direct search, show as directory for user choice
+        if query and len(items) <= 12 and not has_more:
+            # For small result sets, show as regular directory so user can see all options
+            pass  # Continue to show directory listing below
             
         for item in items:
             ident = getattr(item, "ident", None)
             if not ident:
                 continue  # skip items without ident
             list_item = self._create_list_item(item, media_type)
-            url = self.build_url({"action": "play", "ident": ident, "media_type": media_type})
+            
+            # Add context information for history tracking
+            play_params = {
+                "action": "play", 
+                "ident": ident, 
+                "media_type": media_type
+            }
+            
+            # Add title and other metadata for history
+            if hasattr(item, 'metadata') and item.metadata:
+                title = item.metadata.get("title")
+                year = item.metadata.get("year")
+            elif hasattr(item, 'cleaned_title'):
+                title = item.cleaned_title
+                year = getattr(item, 'guessed_year', None)
+            else:
+                title = str(item)
+                year = None
+                
+            if title:
+                play_params["context_title"] = title
+            if year:
+                play_params["context_year"] = year
+            if hasattr(item, 'season') and item.season:
+                play_params["season"] = item.season
+            if hasattr(item, 'episode') and item.episode:
+                play_params["episode"] = item.episode
+            
+            url = self.build_url(play_params)
             xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
         if has_more:
             params = {
@@ -551,14 +704,37 @@ class Plugin:
 
     def play_item(self) -> None:
         ident = self.params.get("ident")
+        self._logger(f"play_item called with ident: {ident}", xbmc.LOGINFO)
         self._resolve_and_play(ident)
 
     def _resolve_and_play(self, ident: str) -> None:
+        self._logger(f"_resolve_and_play called with ident: {ident}", xbmc.LOGINFO)
         if not ident:
+            self._logger("ERROR: Missing file identifier - ident is None or empty", xbmc.LOGERROR)
             self.notify("Missing file identifier", level=xbmc.LOGWARNING)
             xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
             return
+
+        # Check if it's a Sdilej item (URL)
+        if ident.startswith("http"):
+            if hasattr(self, 'sdilej_api') and self.sdilej_api:
+                try:
+                    link = self.sdilej_api.resolve_url(ident)
+                    if link:
+                        self._logger(f"SUCCESS: Got Sdilej link: {link}", xbmc.LOGINFO)
+                        list_item = xbmcgui.ListItem(path=link)
+                        list_item.setProperty("IsPlayable", "true")
+                        xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+                        return
+                    else:
+                        self.notify("Failed to resolve Sdilej link", level=xbmc.LOGWARNING)
+                except Exception as e:
+                    self._logger(f"Sdilej resolve error: {e}", xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+
         if not self._ensure_session():
+            self._logger("ERROR: Session ensure failed - authentication problem", xbmc.LOGERROR)
             xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
             return
         try:
@@ -568,12 +744,23 @@ class Plugin:
                 force_https=self.settings.force_https,
             )
         except WebshareError as exc:
+            self._logger(f"ERROR: WebshareError when getting file link: {exc}", xbmc.LOGERROR)
             self.notify(str(exc), level=xbmc.LOGWARNING)
             xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
             return
+        self._logger(f"SUCCESS: Got file link: {link}", xbmc.LOGINFO)
         list_item = xbmcgui.ListItem(path=link)
         list_item.setProperty("IsPlayable", "true")
+        
+        # Record to history before playing
+        try:
+            self._record_playback_history(ident)
+        except Exception as e:
+            self._logger(f"Warning: Failed to record history: {e}", xbmc.LOGWARNING)
+        
+        self._logger("SUCCESS: Calling setResolvedUrl with success=True", xbmc.LOGINFO)
         xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+        self._logger("SUCCESS: setResolvedUrl completed", xbmc.LOGINFO)
 
     def show_series_list(self) -> None:
         """Show list of TV series - optimized for search."""
@@ -624,7 +811,22 @@ class Plugin:
             xbmcplugin.endOfDirectory(self.handle)
             self.notify("Žádné seriály nenalezeny", level=xbmc.LOGINFO)
             return
-        # TODO: Add code here to display the found series if needed
+            
+        # Show found series as playable items instead of empty directory
+        xbmcplugin.setPluginCategory(self.handle, f"Nalezené seriály ({len(series_names)})")
+        xbmcplugin.setContent(self.handle, "episodes")
+        
+        for series_name in sorted(series_names):
+            example_item = series_examples.get(series_name)
+            if example_item:
+                list_item = self._create_list_item(example_item, "tvshow", is_playable=False)
+                list_item.setLabel(f"{series_name} - ukázka")
+                url = self.build_url({
+                    "action": "show_seasons", 
+                    "series_name": series_name
+                })
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=True)
+        
         xbmcplugin.endOfDirectory(self.handle)
     
     def _show_browse_series_list(self) -> None:
@@ -802,7 +1004,23 @@ class Plugin:
                 'mediatype': 'episode'
             })
             
-            url = self.build_url({"action": "play", "ident": item.ident, "media_type": "tvshow"})
+            # Add context information for history tracking
+            play_params = {
+                "action": "play", 
+                "ident": item.ident, 
+                "media_type": "tvshow",
+                "context_title": f"{series_name} - {episode_label}",
+                "season": season_num,
+                "episode": item.episode or 0
+            }
+            
+            # Add year if available
+            if hasattr(item, 'metadata') and item.metadata and item.metadata.get("year"):
+                play_params["context_year"] = item.metadata.get("year")
+            elif hasattr(item, 'guessed_year') and item.guessed_year:
+                play_params["context_year"] = item.guessed_year
+            
+            url = self.build_url(play_params)
             xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
         
         xbmcplugin.endOfDirectory(self.handle)
@@ -1048,6 +1266,7 @@ class Plugin:
         self._logger(f"search_and_play_episode: {query}", xbmc.LOGINFO)
         
         if not query:
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
             return
         
         # Search with exact episode pattern
@@ -1069,40 +1288,149 @@ class Plugin:
         
         if not items:
             self.notify(f"Epizoda S{season}E{episode} nenalezena", level=xbmc.LOGINFO)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
             return
         
-        # Show stream selection dialog
-        self._show_stream_selection(items, f"{series_name} S{season}E{episode}")
+        # If only one item, play it directly
+        if len(items) == 1:
+            self._play_item(items[0])
+        else:
+            # Multiple items - pick the best quality one
+            best_item = self._select_best_stream(items)
+            if best_item:
+                self._play_item(best_item)
+            else:
+                # Fallback to first item
+                self._play_item(items[0])
     
     def _show_stream_selection(self, items, title="Vyberte stream"):
         """Show stream selection dialog with quality info."""
-        from .stream_selector import StreamSelectorDialog
-        
-        # Convert catalogue items to stream format
-        streams = []
-        for item in items:
-            stream_info = {
-                'name': item.original_name,  # MediaItem uses original_name, not name
-                'size': getattr(item, 'size', 0),
-                'ident': item.ident,
-                'item': item  # Keep reference to original item
-            }
-            streams.append(stream_info)
-        
-        # Show selection dialog
-        selector = StreamSelectorDialog(streams)
-        selected_stream = selector.show_selection_dialog()
-        
-        if selected_stream:
-            # Play selected stream
-            item = selected_stream['item']
-            self._play_item(item)
+        try:
+            from .stream_selector import StreamSelectorDialog
+            
+            # Convert catalogue items to stream format
+            streams = []
+            for item in items:
+                stream_info = {
+                    'name': item.original_name,  # MediaItem uses original_name, not name
+                    'size': getattr(item, 'size', 0),
+                    'ident': item.ident,
+                    'item': item  # Keep reference to original item
+                }
+                streams.append(stream_info)
+            
+            # Show selection dialog
+            selector = StreamSelectorDialog(streams)
+            selected_stream = selector.show_selection_dialog()
+            
+            if selected_stream:
+                # Play selected stream
+                item = selected_stream['item']
+                self._play_item(item)
+            else:
+                # User cancelled - set invalid resolved URL like in stream-cinema-2
+                xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+                
+        except ImportError:
+            # Fallback to regular directory if stream_selector not available
+            self._logger("StreamSelectorDialog not available, showing as directory", xbmc.LOGWARNING)
+            self._show_items_as_directory(items)
+        except Exception as e:
+            self._logger(f"Error in stream selection: {e}", xbmc.LOGERROR)
+            # On error, also set invalid resolved URL
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
     
+    def _select_best_stream(self, items):
+        """Select the best quality stream from available items."""
+        if not items:
+            return None
+        
+        # Score items by quality and other factors
+        scored_items = []
+        for item in items:
+            score = 0
+            
+            # Quality scoring
+            quality = getattr(item, 'quality', '').lower() if hasattr(item, 'quality') and item.quality else ''
+            if '2160' in quality or '4k' in quality or 'uhd' in quality:
+                score += 100
+            elif '1080' in quality or 'fhd' in quality:
+                score += 80
+            elif '720' in quality or 'hd' in quality:
+                score += 60
+            else:
+                score += 40  # SD or unknown
+            
+            # Size scoring (prefer reasonable sizes - not too small, not too large)
+            size = getattr(item, 'size', 0) if hasattr(item, 'size') else 0
+            if size > 0:
+                size_gb = size / (1024 * 1024 * 1024)
+                if 2 <= size_gb <= 15:  # Good range for movies/episodes
+                    score += 20
+                elif 1 <= size_gb < 2:  # Small but acceptable
+                    score += 10
+                elif size_gb > 15:  # Large files
+                    score += 5
+            
+            # Audio languages scoring (prefer CZ)
+            audio_langs = getattr(item, 'audio_languages', []) if hasattr(item, 'audio_languages') else []
+            if audio_langs and 'cz' in [lang.lower() for lang in audio_langs if lang]:
+                score += 30
+            
+            scored_items.append((score, item))
+        
+        # Sort by score (highest first) and return best item
+        scored_items.sort(key=lambda x: x[0], reverse=True)
+        return scored_items[0][1] if scored_items else items[0]
+
     def _play_item(self, item):
         """Play media item using the standard plugin method (bez rekurze)."""
         ident = getattr(item, "ident", None)
         self._logger(f"[_play_item] ident={ident}", xbmc.LOGDEBUG)
-        self._resolve_and_play(ident)
+        
+        if not ident:
+            self.notify("Missing file identifier", level=xbmc.LOGWARNING)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+
+        # Check if it's a Sdilej item (URL)
+        if ident.startswith("http"):
+            if hasattr(self, 'sdilej_api') and self.sdilej_api:
+                try:
+                    link = self.sdilej_api.resolve_url(ident)
+                    if link:
+                        self._logger(f"SUCCESS: Got Sdilej link: {link}", xbmc.LOGINFO)
+                        list_item = xbmcgui.ListItem(path=link)
+                        list_item.setProperty("IsPlayable", "true")
+                        xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+                        return
+                    else:
+                        self.notify("Failed to resolve Sdilej link", level=xbmc.LOGWARNING)
+                        xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+                        return
+                except Exception as e:
+                    self._logger(f"Sdilej resolve error: {e}", xbmc.LOGERROR)
+                    xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+                    return
+            
+        if not self._ensure_session():
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+            
+        try:
+            link = self.api.file_link(
+                ident,
+                download_type=self.settings.download_type,
+                force_https=self.settings.force_https,
+            )
+            self._logger(f"Got stream URL: {link}", xbmc.LOGINFO)
+            list_item = xbmcgui.ListItem(path=link)
+            list_item.setProperty("IsPlayable", "true")
+            xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+        except Exception as exc:
+            self._logger(f"Error getting stream link: {exc}", xbmc.LOGERROR)
+            self.notify(str(exc), level=xbmc.LOGWARNING)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
     
     def _show_stream_selection_for_browse(self, items, query):
         """Show stream selection for browse results (fallback to directory if selection fails)."""
@@ -1148,7 +1476,35 @@ class Plugin:
             if not ident:
                 continue  # skip items without ident
             list_item = self._create_list_item(item, media_type)
-            url = self.build_url({"action": "play", "ident": ident, "media_type": media_type})
+            
+            # Add context information for history tracking
+            play_params = {
+                "action": "play", 
+                "ident": ident, 
+                "media_type": media_type
+            }
+            
+            # Add title and other metadata for history
+            if hasattr(item, 'metadata') and item.metadata:
+                title = item.metadata.get("title")
+                year = item.metadata.get("year")
+            elif hasattr(item, 'cleaned_title'):
+                title = item.cleaned_title
+                year = getattr(item, 'guessed_year', None)
+            else:
+                title = str(item)
+                year = None
+                
+            if title:
+                play_params["context_title"] = title
+            if year:
+                play_params["context_year"] = year
+            if hasattr(item, 'season') and item.season:
+                play_params["season"] = item.season
+            if hasattr(item, 'episode') and item.episode:
+                play_params["episode"] = item.episode
+            
+            url = self.build_url(play_params)
             xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
             
         xbmcplugin.endOfDirectory(self.handle)
@@ -1160,8 +1516,8 @@ class Plugin:
         xbmcplugin.setContent(self.handle, "videos")
         
         entries = [
-            ("🎬 Filmy", {"action": "metadata_movies"}),
-            ("📺 Seriály", {"action": "metadata_tvshows"}),
+            ("Filmy", {"action": "metadata_movies"}),
+            ("Seriály", {"action": "metadata_tvshows"}),
         ]
         
         for label, query in entries:
@@ -1177,11 +1533,11 @@ class Plugin:
         xbmcplugin.setContent(self.handle, "videos")
         
         entries = [
-            ("🔥 Populární filmy", {"action": "metadata_movie_category", "category": "popular"}),
-            ("⭐ Nejlépe hodnocené", {"action": "metadata_movie_category", "category": "top_rated"}),
-            ("🎭 V kinech", {"action": "metadata_movie_category", "category": "now_playing"}),
-            ("📅 Připravované", {"action": "metadata_movie_category", "category": "upcoming"}),
-            ("🎭 Podle žánru", {"action": "metadata_genre_movies"}),
+            ("Populární filmy", {"action": "metadata_movie_category", "category": "popular"}),
+            ("Nejlépe hodnocené", {"action": "metadata_movie_category", "category": "top_rated"}),
+            ("V kinech", {"action": "metadata_movie_category", "category": "now_playing"}),
+            ("Připravované", {"action": "metadata_movie_category", "category": "upcoming"}),
+            ("Podle žánru", {"action": "metadata_genre_movies"}),
         ]
         
         for label, query in entries:
@@ -1197,11 +1553,11 @@ class Plugin:
         xbmcplugin.setContent(self.handle, "videos")
         
         entries = [
-            ("🔥 Populární seriály", {"action": "metadata_tv_category", "category": "popular"}),
-            ("⭐ Nejlépe hodnocené", {"action": "metadata_tv_category", "category": "top_rated"}),
-            ("📺 Vysílané dnes", {"action": "metadata_tv_category", "category": "airing_today"}),
-            ("📡 Aktuálně vysílané", {"action": "metadata_tv_category", "category": "on_the_air"}),
-            ("🎭 Podle žánru", {"action": "metadata_genre_tvshows"}),
+            ("Populární seriály", {"action": "metadata_tv_category", "category": "popular"}),
+            ("Nejlépe hodnocené", {"action": "metadata_tv_category", "category": "top_rated"}),
+            ("Vysílané dnes", {"action": "metadata_tv_category", "category": "airing_today"}),
+            ("Aktuálně vysílané", {"action": "metadata_tv_category", "category": "on_the_air"}),
+            ("Podle žánru", {"action": "metadata_genre_tvshows"}),
         ]
         
         for label, query in entries:
@@ -1233,37 +1589,20 @@ class Plugin:
             return
             
         method = getattr(self.metadata, method_name, None)
-        if not self.metadata or not self.metadata.has_providers():
-            self.notify("Metadata poskytovatelé nejsou k dispozici", level=xbmc.LOGWARNING)
-            return
-        
-        # Map category to method
-        method_map = {
-            "popular": "get_popular_tv_shows",
-            "top_rated": "get_top_rated_tv_shows",
-            "airing_today": "get_airing_today_tv_shows", 
-            "on_the_air": "get_on_the_air_tv_shows"
-        }
-        
-        method_name = method_map.get(category)
-        if not method_name:
-            return
-            
-        method = getattr(self.metadata, method_name, None)
         if not method:
             return
             
         try:
-            shows = method(page)
-            if not shows:
-                self.notify("Žádné seriály nenalezeny", level=xbmc.LOGINFO)
+            movies = method(page)
+            if not movies:
+                self.notify("Žádné filmy nenalezeny", level=xbmc.LOGINFO)
                 return
                 
-            self._show_metadata_content_list(shows, "tvshow", category, page)
+            self._show_metadata_content_list(movies, "movie", category, page)
             
         except Exception as e:
-            self._logger(f"Error fetching TV shows category {category}: {e}", xbmc.LOGERROR)
-            self.notify("Chyba při načítání seriálů", level=xbmc.LOGERROR)
+            self._logger(f"Error fetching movies category {category}: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při načítání filmů", level=xbmc.LOGERROR)
 
     def show_metadata_genre_movies(self) -> None:
         """Show movie genres list."""
@@ -1288,7 +1627,7 @@ class Plugin:
                     "genre_name": genre_name,
                     "page": 1
                 })
-                item = xbmcgui.ListItem(label=f"🎬 {genre_name}")
+                item = xbmcgui.ListItem(label=f"{genre_name}")
                 xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
                 
             xbmcplugin.endOfDirectory(self.handle)
@@ -1320,7 +1659,7 @@ class Plugin:
                     "genre_name": genre_name,
                     "page": 1
                 })
-                item = xbmcgui.ListItem(label=f"📺 {genre_name}")
+                item = xbmcgui.ListItem(label=f"{genre_name}")
                 xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
                 
             xbmcplugin.endOfDirectory(self.handle)
@@ -1409,16 +1748,20 @@ class Plugin:
             }
             list_item.setInfo("video", info)
             
-            # Create URL for Webshare search
+            # Create URL for optimized Webshare search
             if media_type == "movie":
                 search_query = title
                 if year:
                     search_query += f" {year}"
                 url = self.build_url({
-                    "action": "browse",
+                    "action": "quick_movie_search",
                     "query": search_query,
-                    "media_type": "movie"
+                    "title": title,
+                    "year": year or ""
                 })
+                # Movies are playable - dialog will be shown
+                list_item.setProperty("IsPlayable", "true")
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
             else:  # tvshow
                 url = self.build_url({
                     "action": "show_metadata_seasons",
@@ -1426,15 +1769,1670 @@ class Plugin:
                     "series_id": item.get("id"),
                     "original_query": title
                 })
-            
-            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=True)
+                # TV shows are folders
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=True)
         
         # Add "Next page" if we have full results (usually 20 items per page)
         if len(content_list) >= 20:
             next_params = dict(self.params)
             next_params["page"] = str(page + 1)
             next_url = self.build_url(next_params)
-            next_item = xbmcgui.ListItem(label=f"▶️ Další strana ({page + 1})")
+            next_item = xbmcgui.ListItem(label=f"Další strana ({page + 1})")
             xbmcplugin.addDirectoryItem(self.handle, next_url, next_item, isFolder=True)
         
         xbmcplugin.endOfDirectory(self.handle)
+
+    def quick_movie_search(self) -> None:
+        """Smart movie search with detailed file information dialog."""
+        query = self.params.get("query", "")
+        title = self.params.get("title", "")
+        year = self.params.get("year", "")
+        
+        if not query:
+            return
+            
+        self._logger(f"Smart movie search for: '{title}' ({year}) - query: '{query}'", xbmc.LOGINFO)
+        
+        # Try multiple search strategies for better accuracy
+        search_queries = [
+            query,  # Original "Title Year" query
+            title,  # Just title
+            f"{title} {year}" if year else title,  # Ensure year is included
+        ]
+        
+        # Remove duplicates while preserving order
+        unique_queries = []
+        for q in search_queries:
+            if q and q not in unique_queries:
+                unique_queries.append(q)
+        
+        all_items = []
+        
+        try:
+            # Try each search query to find the best matches
+            for i, search_query in enumerate(unique_queries):
+                self._logger(f"Trying search query {i+1}/{len(unique_queries)}: '{search_query}'", xbmc.LOGINFO)
+                
+                # Adjust search parameters based on query type
+                page_size = 30 if i == 0 else 20  # More results for first (most specific) query
+                
+                items, _, _, _ = self.catalogue.fetch(
+                    media_type="movie",
+                    query=search_query,
+                    start_offset=0,
+                    page_size=page_size
+                )
+                
+                self._logger(f"Search '{search_query}' returned {len(items) if items else 0} items", xbmc.LOGINFO)
+                
+                if items:
+                    # Filter items to match the movie better
+                    filtered_items = self._filter_movie_results(items, title, year)
+                    self._logger(f"After filtering: {len(filtered_items)} relevant items", xbmc.LOGINFO)
+                    
+                    all_items.extend(filtered_items)
+                    
+                    # If we found enough good matches, we can stop searching
+                    if len(filtered_items) >= 5:  # Found sufficient results
+                        self._logger(f"Found sufficient results ({len(filtered_items)}), stopping search", xbmc.LOGINFO)
+                        break
+                else:
+                    self._logger(f"No items found for query: '{search_query}'", xbmc.LOGINFO)
+            
+            # Remove duplicates by ident while preserving order
+            seen_idents = set()
+            unique_items = []
+            for item in all_items:
+                if hasattr(item, 'ident') and item.ident and item.ident not in seen_idents:
+                    unique_items.append(item)
+                    seen_idents.add(item.ident)
+            
+            self._logger(f"Final result: {len(unique_items)} unique items found", xbmc.LOGINFO)
+            
+            if not unique_items:
+                # Show user-friendly message when no results found
+                self._logger(f"No results found for movie: '{title}' ({year})", xbmc.LOGINFO)
+                self._show_movie_not_found_dialog(title, year)
+                xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+                return
+                
+            # Show detailed stream selection dialog
+            self._logger(f"Showing stream selection dialog for {len(unique_items)} items", xbmc.LOGINFO)
+            self._show_movie_streams_dialog(unique_items, title, year)
+            
+        except Exception as e:
+            self._logger(f"Error in smart movie search: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při vyhledávání filmu", level=xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+    
+    def _filter_movie_results(self, items, title, year):
+        """Filter search results to find items that better match the target movie."""
+        if not items:
+            return []
+        
+        title_lower = title.lower() if title else ""
+        year_str = str(year) if year else ""
+        
+        # Score-based filtering for better results
+        scored_items = []
+        
+        for item in items:
+            score = 0
+            
+            # Get item title for comparison - check multiple sources
+            item_title = ""
+            item_filename = ""
+            
+            if hasattr(item, 'metadata') and item.metadata and item.metadata.get("title"):
+                item_title = item.metadata.get("title").lower()
+            elif hasattr(item, 'cleaned_title') and item.cleaned_title:
+                item_title = item.cleaned_title.lower()
+                
+            if hasattr(item, 'original_name') and item.original_name:
+                item_filename = item.original_name.lower()
+            
+            # Title matching with scoring
+            if title_lower:
+                # Exact title match gets highest score
+                if title_lower == item_title:
+                    score += 100
+                elif title_lower in item_title or item_title in title_lower:
+                    score += 50
+                elif title_lower in item_filename:
+                    score += 30
+                else:
+                    # Check if most words from title are present
+                    title_words = title_lower.split()
+                    matches = sum(1 for word in title_words if word in item_title or word in item_filename)
+                    if matches > len(title_words) / 2:  # More than half words match
+                        score += 25
+            
+            # Year matching
+            if year_str:
+                # Check metadata year
+                if hasattr(item, 'metadata') and item.metadata:
+                    item_year = item.metadata.get("year")
+                    if item_year and str(item_year) == year_str:
+                        score += 50
+                
+                # Check year in filename
+                if year_str in item_filename:
+                    score += 25
+                    
+                # Check guessed year from item
+                if hasattr(item, 'guessed_year') and item.guessed_year and str(item.guessed_year) == year_str:
+                    score += 25
+            
+            # Quality bonus (prefer higher quality)
+            if hasattr(item, 'quality'):
+                quality = getattr(item, 'quality', '')
+                if quality:  # Check if quality is not None or empty
+                    quality = quality.upper()
+                    if quality in ['UHD', '4K', '2160P']:
+                        score += 15
+                    elif quality in ['HD', '1080P']:
+                        score += 10
+                    elif quality in ['720P']:
+                        score += 5
+            
+            # Size bonus (reasonable file sizes get bonus)
+            if hasattr(item, 'size') and item.size:
+                size_gb = item.size / (1024 * 1024 * 1024)
+                if 0.5 <= size_gb <= 20:  # Reasonable movie size range
+                    score += 5
+            
+            if score > 0:  # Only include items with some relevance
+                scored_items.append((item, score))
+        
+        # Sort by score (highest first) and return top matches
+        scored_items.sort(key=lambda x: x[1], reverse=True)
+        
+        # Return top scored items, but at least some items if we have any
+        if scored_items:
+            # Take items with score above threshold, or top 10 if none meet threshold
+            good_items = [item for item, score in scored_items if score >= 25]
+            if not good_items and scored_items:
+                good_items = [item for item, score in scored_items[:10]]
+            return good_items
+        
+        # Fallback: return first 10 original items
+        return items[:10]
+    
+    def _show_movie_not_found_dialog(self, title, year):
+        """Show dialog when movie is not found on Webshare."""
+        year_text = f" ({year})" if year else ""
+        message = f"[COLOR yellow]Film '{title}{year_text}' se na Webshare.cz nepodařilo najít.[/COLOR]\n\n"
+        message += "[COLOR white]Možné důvody:[/COLOR]\n"
+        message += "[COLOR lightblue]•[/COLOR] Film může mít jiný název na Webshare\n"
+        message += "[COLOR lightblue]•[/COLOR] Film ještě není uložen na Webshare.cz\n"
+        message += "[COLOR lightblue]•[/COLOR] Zkuste vyhledat film ručně pomocí vyhledávání\n\n"
+        message += "[COLOR lime]Tip:[/COLOR] Použijte obecné vyhledávání v hlavním menu"
+        
+        self.dialog.ok("[COLOR red]Film nenalezen[/COLOR]", message)
+    
+    def _show_streams_as_directory(self, items, title, year):
+        """Show streams as Kodi directory for user selection."""
+        if not items:
+            xbmcplugin.endOfDirectory(self.handle)
+            return
+            
+        year_text = f" ({year})" if year else ""
+        xbmcplugin.setPluginCategory(self.handle, f"{title}{year_text} - Dostupné streamy")
+        xbmcplugin.setContent(self.handle, "movies")
+        
+        for item in items:
+            # Create descriptive label with quality and file info
+            label = self._create_stream_label(item)
+            
+            # Create list item for the stream
+            list_item = self._create_list_item(item, "movie", is_playable=True)
+            list_item.setLabel(label)
+            
+            # Add extra video info
+            info = {
+                "title": title,
+                "year": year,
+                "mediatype": "movie"
+            }
+            list_item.setInfo("video", info)
+            
+            # Create URL for direct play with context information
+            play_params = {
+                "action": "play", 
+                "ident": item.ident, 
+                "media_type": "movie",
+                "context_title": title
+            }
+            
+            if year:
+                play_params["context_year"] = year
+            
+            url = self.build_url(play_params)
+            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+    
+    def _create_stream_label(self, item):
+        """Create descriptive label for stream item."""
+        # Get basic filename
+        filename = getattr(item, 'original_name', '') or getattr(item, 'cleaned_title', '') or 'Neznámý soubor'
+        
+        # Get file size in readable format
+        size_mb = getattr(item, 'size', 0) / (1024 * 1024) if hasattr(item, 'size') and getattr(item, 'size', 0) > 0 else 0
+        if size_mb >= 1024:
+            size_text = f"{size_mb/1024:.1f} GB"
+        elif size_mb > 0:
+            size_text = f"{size_mb:.0f} MB"
+        else:
+            size_text = "? MB"
+        
+        # Get quality
+        quality = getattr(item, 'quality', 'SD') or 'SD'
+        quality = quality.upper()
+        
+        # Get audio info
+        audio_info = []
+        if hasattr(item, 'audio_languages') and item.audio_languages:
+            for lang in item.audio_languages:
+                if lang and isinstance(lang, str):
+                    audio_info.append(lang.upper())
+        
+        # Detect dubbing from filename
+        dubbing = self._detect_dubbing(filename)
+        if dubbing:
+            audio_info.append(dubbing)
+        
+        # Build label parts
+        parts = [f"[{quality}]", f"[{size_text}]"]
+        if audio_info:
+            parts.append(f"[{' | '.join(audio_info)}]")
+        
+        # Combine into final label
+        label = f"{' '.join(parts)} {filename}"
+        return label
+    
+    def _show_movie_streams_dialog(self, items, title, year):
+        """Show detailed dialog with movie stream information."""
+        if not items:
+            return
+        
+        # Prepare stream information with colors
+        stream_options = []
+        
+        for item in items:
+            # Get filename for display
+            filename = getattr(item, 'original_name', '') or getattr(item, 'cleaned_title', '') or 'Neznámý soubor'
+            
+            # Get file size in readable format
+            size_mb = getattr(item, 'size', 0) / (1024 * 1024) if hasattr(item, 'size') and getattr(item, 'size', 0) > 0 else 0
+            if size_mb >= 1024:
+                size_text = f"{size_mb/1024:.1f} GB"
+            elif size_mb > 0:
+                size_text = f"{size_mb:.0f} MB"
+            else:
+                size_text = "Neznámá velikost"
+            
+            # Get quality with color
+            quality = getattr(item, 'quality', 'SD') or 'SD'  # Handle None values
+            quality = quality.upper()
+            if quality in ['UHD', '4K', '2160P']:
+                quality_colored = f"[COLOR gold]{quality}[/COLOR]"
+            elif quality in ['HD', '1080P', '720P']:
+                quality_colored = f"[COLOR lime]{quality}[/COLOR]"
+            else:
+                quality_colored = f"[COLOR white]{quality}[/COLOR]"
+            
+            # Get audio languages and dubbing
+            audio_info = []
+            if hasattr(item, 'audio_languages') and item.audio_languages:
+                for lang in item.audio_languages:
+                    if lang and isinstance(lang, str):  # Check lang is not None and is string
+                        lang_upper = lang.upper()
+                        if lang_upper == 'CZ':
+                            audio_info.append(f"[COLOR cyan]CZ[/COLOR]")
+                        elif lang_upper == 'EN':
+                            audio_info.append(f"[COLOR yellow]EN[/COLOR]")
+                        else:
+                            audio_info.append(f"[COLOR white]{lang_upper}[/COLOR]")
+            
+            # Detect dubbing from filename
+            dubbing = self._detect_dubbing(filename)
+            if dubbing:
+                if 'CZ' in dubbing:
+                    audio_info.append(f"[COLOR cyan]{dubbing}[/COLOR]")
+                elif 'EN' in dubbing:
+                    audio_info.append(f"[COLOR yellow]{dubbing}[/COLOR]")
+                else:
+                    audio_info.append(f"[COLOR white]{dubbing}[/COLOR]")
+            
+            # Check for subtitles in filename - enhanced detection
+            subs_info = []
+            filename_lower = filename.lower()
+            
+            # Czech subtitle patterns
+            cz_sub_patterns = [
+                'cz sub', 'czech sub', 'titulky cz', 'cz tit', 'cz.sub', 'czech.sub',
+                'subs.cz', 'sub.cz', 'cze.sub', 'ces.sub', 'czech subs', 'ceske titulky',
+                'české titulky', 'cz-sub', 'cz_sub'
+            ]
+            if any(pattern in filename_lower for pattern in cz_sub_patterns):
+                subs_info.append(f"[COLOR lightblue]CZ titulky[/COLOR]")
+            
+            # English subtitle patterns  
+            en_sub_patterns = [
+                'en sub', 'english sub', 'titulky en', 'en tit', 'en.sub', 'english.sub',
+                'subs.en', 'sub.en', 'eng.sub', 'english subs', 'anglicke titulky',
+                'anglické titulky', 'en-sub', 'en_sub'
+            ]
+            if any(pattern in filename_lower for pattern in en_sub_patterns):
+                subs_info.append(f"[COLOR orange]EN titulky[/COLOR]")
+            
+            # Estimate required speed (rough calculation)
+            estimated_bitrate = int(size_mb * 8 / (100 * 60)) if size_mb > 0 else 0  # Assume 100min movie
+            if estimated_bitrate > 25:
+                speed_text = f"[COLOR red]~{estimated_bitrate} Mbps (Vysoká)[/COLOR]"
+            elif estimated_bitrate > 10:
+                speed_text = f"[COLOR orange]~{estimated_bitrate} Mbps (Střední)[/COLOR]"
+            elif estimated_bitrate > 0:
+                speed_text = f"[COLOR lime]~{estimated_bitrate} Mbps (Nízká)[/COLOR]"
+            else:
+                speed_text = "[COLOR gray]Neznámá rychlost[/COLOR]"
+            
+            # Create formatted display text
+            display_parts = []
+            display_parts.append(f"[COLOR white]{filename}[/COLOR]")
+            
+            info_parts = []
+            info_parts.append(quality_colored)
+            info_parts.append(f"[COLOR lightgray]{size_text}[/COLOR]")
+            
+            if audio_info:
+                info_parts.append(" | ".join(audio_info))
+            
+            if subs_info:
+                info_parts.append(" | ".join(subs_info))
+                
+            info_parts.append(speed_text)
+            
+            display_text = display_parts[0] + "\n" + " | ".join(info_parts)
+            
+            stream_options.append({
+                'label': display_text,
+                'item': item
+            })
+        
+        # If only one option, show it directly
+        if len(stream_options) == 1:
+            self._play_item(stream_options[0]['item'])
+            return
+        
+        # Show selection dialog with colored labels
+        labels = [option['label'] for option in stream_options]
+        labels.append("[COLOR red][Zrušit][/COLOR]")
+        
+        year_text = f" ({year})" if year else ""
+        dialog_title = f"Streams pro: [B]{title}{year_text}[/B]"
+        selected = self.dialog.select(dialog_title, labels)
+        
+        if selected >= 0 and selected < len(stream_options):
+            self._logger(f"User selected stream {selected}, playing item", xbmc.LOGINFO)
+            self._play_item(stream_options[selected]['item'])
+        else:
+            # User cancelled selection - set invalid resolved URL
+            self._logger(f"User cancelled stream selection (selected={selected})", xbmc.LOGINFO)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+
+    def show_seasonal_content(self) -> None:
+        """Show content based on seasons (spring, summer, autumn, winter)."""
+        xbmcplugin.setPluginCategory(self.handle, "Výběr dle ročního období")
+        xbmcplugin.setContent(self.handle, "videos")
+        
+        entries = [
+            ("JARO", {"action": "browse", "seasonal": "spring"}),
+            ("LÉTO", {"action": "browse", "seasonal": "summer"}),
+            ("PODZIM", {"action": "browse", "seasonal": "autumn"}),
+            ("ZIMA", {"action": "browse", "seasonal": "winter"}),
+        ]
+        
+        for label, query in entries:
+            url = self.build_url(query)
+            item = xbmcgui.ListItem(label=label)
+            xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_info(self) -> None:
+        """Show plugin information and features."""
+        info_text = """[B]TVStreamCZ Plugin - Informace[/B]
+
+[COLOR gold]AKTUÁLNÍ FUNKCE:[/COLOR]
+• Procházení filmů a seriálů z Webshare.cz
+• Pokročilé vyhledávání s filtry (kvalita, dabing, titulky)
+• Metadata z TMDb a ČSFD databází
+• Automatická detekce kvality (HD/UHD/SD) a dabingu (CZ/EN)
+• Strukturované procházení seriálů po sériích a epizodách
+• Streamování přes oficiální Webshare API
+• Výběr obsahu podle ročního období
+
+[COLOR lightblue]PLÁNOVANÉ FUNKCE:[/COLOR]
+• Statistiky sledování a oblíbené obsahy
+• Notifikace o nových epizodách oblíbených seriálů
+• Synchronizace sledovaných položek mezi zařízeními
+• Rozšířené filtry podle herců a režisérů
+• Kalendář premiér filmů a seriálů
+• Offline režim s možností stahování
+• AI doporučení na základě sledovaného obsahu
+• Integrace s hudebními službami pro soundtracky
+• Žebříčky a hodnocení od komunity
+• Vícejazyčné rozhraní
+• Pokročilé analytiky sledování
+
+[COLOR orange]POŽADAVKY:[/COLOR]
+• Aktivní Webshare.cz účet
+• Kodi 20+ (Python 3)
+• Internetové připojení
+
+[COLOR lime]PODPORA:[/COLOR]
+GitHub: github.com/daker52/TVstreamCZ
+"""
+        
+        dialog = xbmcgui.Dialog()
+        dialog.textviewer("TVStreamCZ - Informace", info_text)
+
+    def show_settings(self) -> None:
+        """Open plugin settings."""
+        self.addon.openSettings()
+
+    def check_updates(self) -> None:
+        """Check for plugin updates."""
+        try:
+            import requests
+            
+            # GitHub API pro zjištění nejnovější verze
+            api_url = "https://api.github.com/repos/daker52/TVstreamCZ/releases/latest"
+            
+            dialog = xbmcgui.Dialog()
+            dialog.notification("TVStreamCZ", "Kontrola aktualizací...", xbmcgui.NOTIFICATION_INFO, 2000)
+            
+            try:
+                response = requests.get(api_url, timeout=10)
+                if response.status_code == 200:
+                    release_data = response.json()
+                    latest_version = release_data.get("tag_name", "neznámá")
+                    current_version = self.addon.getAddonInfo("version")
+                    
+                    if latest_version != current_version:
+                        message = f"Dostupná nová verze: {latest_version}\nAktuální verze: {current_version}\n\nChcete přejít na stránku stažení?"
+                        if dialog.yesno("Aktualizace dostupná", message):
+                            # Otevře GitHub releases stránku
+                            import webbrowser
+                            webbrowser.open("https://github.com/daker52/TVstreamCZ/releases/latest")
+                    else:
+                        dialog.ok("Aktuální verze", f"Používáte nejnovější verzi: {current_version}")
+                else:
+                    dialog.ok("Chyba", "Nelze zkontrolovat aktualizace. Zkuste to později.")
+            except requests.exceptions.RequestException:
+                dialog.ok("Chyba sítě", "Nelze se připojit k serveru pro kontrolu aktualizací.")
+                
+        except ImportError:
+            dialog = xbmcgui.Dialog()
+            dialog.ok("Chyba", "Modul requests není dostupný pro kontrolu aktualizací.")
+
+    # ------------------------------------------------------------------
+    # Historie přehrávání
+    # ------------------------------------------------------------------
+    
+    def show_history(self) -> None:
+        """Show playback history menu."""
+        xbmcplugin.setPluginCategory(self.handle, "Historie přehrávání")
+        xbmcplugin.setContent(self.handle, "videos")
+        
+        entries = [
+            ("📺 Nedávno přehrané", {"action": "show_recent"}),
+            ("⭐ Nejčastěji přehrávané", {"action": "show_frequent"}),
+            ("💖 Oblíbené", {"action": "show_favorites"}),
+            ("⏸️ Pozastavené filmy", {"action": "show_resume"}),
+            ("📊 Statistiky přehrávání", {"action": "show_stats"}),
+            ("🗑️ Vymazat historii", {"action": "clear_history"}),
+        ]
+        
+        for label, query in entries:
+            url = self.build_url(query)
+            item = xbmcgui.ListItem(label=label)
+            xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_recent_history(self) -> None:
+        """Show recently played items."""
+        xbmcplugin.setPluginCategory(self.handle, "Nedávno přehrané")
+        xbmcplugin.setContent(self.handle, "movies")
+        
+        # Get recent items from Kodi's database
+        recent_items = self._get_recent_items()
+        
+        self._logger(f"Recent items from storage: {len(recent_items) if recent_items else 0}", xbmc.LOGINFO)
+        if recent_items:
+            self._logger(f"Sample recent item: {recent_items[0] if recent_items else 'None'}", xbmc.LOGINFO)
+        
+        if not recent_items:
+            # Show empty message
+            item = xbmcgui.ListItem(label="Žádné nedávno přehrané položky")
+            xbmcplugin.addDirectoryItem(self.handle, "", item, isFolder=False)
+        else:
+            for item_data in recent_items:
+                list_item = self._create_history_list_item(item_data)
+                url = self.build_url({
+                    "action": "play", 
+                    "ident": item_data.get("ident"),
+                    "media_type": item_data.get("media_type", "movie")
+                })
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_frequent_history(self) -> None:
+        """Show most frequently played items."""
+        xbmcplugin.setPluginCategory(self.handle, "Nejčastěji přehrávané")
+        xbmcplugin.setContent(self.handle, "movies")
+        
+        # Get frequent items from stored data
+        frequent_items = self._get_frequent_items()
+        
+        if not frequent_items:
+            item = xbmcgui.ListItem(label="Žádné často přehrávané položky")
+            xbmcplugin.addDirectoryItem(self.handle, "", item, isFolder=False)
+        else:
+            for item_data in frequent_items:
+                # Add play count to the label
+                label = f"{item_data.get('title', 'Neznámý')} ({item_data.get('play_count', 0)}x)"
+                list_item = self._create_history_list_item(item_data)
+                list_item.setLabel(label)
+                
+                url = self.build_url({
+                    "action": "play",
+                    "ident": item_data.get("ident"), 
+                    "media_type": item_data.get("media_type", "movie")
+                })
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_favorites(self) -> None:
+        """Show favorite items."""
+        xbmcplugin.setPluginCategory(self.handle, "Oblíbené")
+        xbmcplugin.setContent(self.handle, "movies")
+        
+        favorites = self._get_favorites()
+        
+        if not favorites:
+            item = xbmcgui.ListItem(label="Žádné oblíbené položky")
+            xbmcplugin.addDirectoryItem(self.handle, "", item, isFolder=False)
+        else:
+            for item_data in favorites:
+                list_item = self._create_history_list_item(item_data)
+                # Add heart emoji to favorites
+                current_label = list_item.getLabel()
+                list_item.setLabel(f"💖 {current_label}")
+                
+                url = self.build_url({
+                    "action": "play",
+                    "ident": item_data.get("ident"),
+                    "media_type": item_data.get("media_type", "movie")
+                })
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_resume_points(self) -> None:
+        """Show items with resume points (partially watched)."""
+        xbmcplugin.setPluginCategory(self.handle, "Pozastavené filmy") 
+        xbmcplugin.setContent(self.handle, "movies")
+        
+        resume_items = self._get_resume_items()
+        
+        if not resume_items:
+            item = xbmcgui.ListItem(label="Žádné pozastavené filmy")
+            xbmcplugin.addDirectoryItem(self.handle, "", item, isFolder=False)
+        else:
+            for item_data in resume_items:
+                # Add resume time to label
+                resume_time = item_data.get('resume_time', 0)
+                minutes = int(resume_time // 60)
+                label = f"{item_data.get('title', 'Neznámý')} (⏸️ {minutes}min)"
+                
+                list_item = self._create_history_list_item(item_data)
+                list_item.setLabel(label)
+                
+                url = self.build_url({
+                    "action": "play",
+                    "ident": item_data.get("ident"),
+                    "media_type": item_data.get("media_type", "movie")
+                })
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_playback_stats(self) -> None:
+        """Show playback statistics."""
+        try:
+            import json
+            
+            recent_items = json.loads(self.addon.getSetting("recent_items") or "[]")
+            frequent_items = json.loads(self.addon.getSetting("frequent_items") or "[]")
+            favorites = json.loads(self.addon.getSetting("favorites") or "[]")
+            
+            total_plays = sum(item.get("play_count", 1) for item in frequent_items)
+            total_unique = len(frequent_items)
+            
+            # Find most played item
+            most_played = None
+            if frequent_items:
+                most_played = max(frequent_items, key=lambda x: x.get("play_count", 0))
+            
+            # Create stats message
+            stats_lines = [
+                f"📊 STATISTIKY PŘEHRÁVÁNÍ",
+                "",
+                f"Celkem přehrání: {total_plays}",
+                f"Unikátních položek: {total_unique}",
+                f"Nedávno přehraných: {len(recent_items)}",
+                f"Oblíbených: {len(favorites)}",
+                ""
+            ]
+            
+            if most_played:
+                stats_lines.extend([
+                    f"Nejčastěji přehráváno:",
+                    f"'{most_played.get('title', 'Neznámý')}'",
+                    f"({most_played.get('play_count', 0)} krát)",
+                    ""
+                ])
+            
+            # Show in dialog
+            dialog = xbmcgui.Dialog()
+            dialog.textviewer("Statistiky přehrávání", "\n".join(stats_lines))
+            
+        except Exception as e:
+            self._logger(f"Error showing stats: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při zobrazení statistik", level=xbmc.LOGWARNING)
+
+    def clear_history(self) -> None:
+        """Clear playback history with confirmation."""
+        dialog = xbmcgui.Dialog()
+        
+        # Show options for what to clear
+        options = [
+            "Nedávno přehrané",
+            "Nejčastěji přehrávané", 
+            "Oblíbené",
+            "Pozastavené filmy",
+            "Celou historii"
+        ]
+        
+        selected = dialog.select("Co chcete vymazat?", options)
+        
+        if selected == -1:  # User cancelled
+            return
+            
+        # Confirmation dialog
+        confirm_msg = f"Opravdu chcete vymazat '{options[selected]}'?"
+        if not dialog.yesno("Potvrzení", confirm_msg):
+            return
+            
+        try:
+            if selected == 0:  # Recent
+                self._clear_recent_history()
+            elif selected == 1:  # Frequent
+                self._clear_frequent_history()
+            elif selected == 2:  # Favorites
+                self._clear_favorites()
+            elif selected == 3:  # Resume points
+                self._clear_resume_points()
+            elif selected == 4:  # All history
+                self._clear_all_history()
+                
+            self.notify(f"{options[selected]} bylo vymazáno", level=xbmc.LOGINFO)
+            
+        except Exception as e:
+            self._logger(f"Error clearing history: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při mazání historie", level=xbmc.LOGWARNING)
+
+    def add_to_favorites(self) -> None:
+        """Add current item to favorites."""
+        ident = self.params.get("ident")
+        if not ident:
+            return
+            
+        try:
+            # Get item info and add to favorites
+            self._add_to_favorites_db(ident)
+            self.notify("Přidáno do oblíbených", level=xbmc.LOGINFO)
+        except Exception as e:
+            self._logger(f"Error adding to favorites: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při přidávání do oblíbených", level=xbmc.LOGWARNING)
+
+    # Helper methods for history management
+    def _create_history_list_item(self, item_data: dict) -> xbmcgui.ListItem:
+        """Create ListItem from history data."""
+        title = item_data.get("title", "Neznámý")
+        list_item = xbmcgui.ListItem(label=title)
+        
+        # Set video info
+        info = {
+            "title": title,
+            "mediatype": "movie" if item_data.get("media_type") == "movie" else "episode"
+        }
+        
+        # Add additional info if available
+        if item_data.get("year"):
+            info["year"] = item_data["year"]
+        if item_data.get("plot"):
+            info["plot"] = item_data["plot"]
+        if item_data.get("season"):
+            info["season"] = item_data["season"]
+        if item_data.get("episode"):
+            info["episode"] = item_data["episode"]
+            
+        list_item.setInfo("video", info)
+        
+        # Set artwork if available
+        art = {}
+        if item_data.get("thumb"):
+            art["thumb"] = item_data["thumb"]
+        if item_data.get("poster"):
+            art["poster"] = item_data["poster"]
+        if art:
+            list_item.setArt(art)
+            
+        list_item.setProperty("IsPlayable", "true")
+        return list_item
+
+    def _get_recent_items(self) -> list:
+        """Get recently played items from addon storage."""
+        try:
+            # Use addon settings to store recent items (simplified approach)
+            recent_json = self.addon.getSetting("recent_items") or "[]"
+            import json
+            return json.loads(recent_json)
+        except:
+            return []
+
+    def _get_frequent_items(self) -> list:
+        """Get frequently played items."""
+        try:
+            frequent_json = self.addon.getSetting("frequent_items") or "[]"
+            import json
+            items = json.loads(frequent_json)
+            # Sort by play count descending
+            return sorted(items, key=lambda x: x.get("play_count", 0), reverse=True)[:20]
+        except:
+            return []
+
+    def _get_favorites(self) -> list:
+        """Get favorite items."""
+        try:
+            favorites_json = self.addon.getSetting("favorites") or "[]"
+            import json
+            return json.loads(favorites_json)
+        except:
+            return []
+
+    def _get_resume_items(self) -> list:
+        """Get items with resume points."""
+        try:
+            resume_json = self.addon.getSetting("resume_items") or "[]"
+            import json
+            return json.loads(resume_json)
+        except:
+            return []
+
+    def _clear_recent_history(self):
+        """Clear recent items history."""
+        self.addon.setSetting("recent_items", "[]")
+
+    def _clear_frequent_history(self):
+        """Clear frequent items history."""
+        self.addon.setSetting("frequent_items", "[]")
+
+    def _clear_favorites(self):
+        """Clear favorites."""
+        self.addon.setSetting("favorites", "[]")
+
+    def _clear_resume_points(self):
+        """Clear resume points."""
+        self.addon.setSetting("resume_items", "[]")
+
+    def _clear_all_history(self):
+        """Clear all history data."""
+        self._clear_recent_history()
+        self._clear_frequent_history() 
+        self._clear_favorites()
+        self._clear_resume_points()
+
+    def _add_to_favorites_db(self, ident: str):
+        """Add item to favorites database."""
+        try:
+            import json
+            favorites_json = self.addon.getSetting("favorites") or "[]"
+            favorites = json.loads(favorites_json)
+            
+            # Check if already in favorites
+            for fav in favorites:
+                if fav.get("ident") == ident:
+                    return  # Already in favorites
+            
+            # Get item info (this would need to be enhanced to fetch actual item data)
+            item_data = {
+                "ident": ident,
+                "title": f"Item {ident}",  # Placeholder - would need actual title
+                "added_date": str(datetime.datetime.now()),
+                "media_type": self.params.get("media_type", "movie")
+            }
+            
+            favorites.append(item_data)
+            self.addon.setSetting("favorites", json.dumps(favorites))
+            
+        except Exception as e:
+            self._logger(f"Error adding to favorites DB: {e}", xbmc.LOGERROR)
+
+    def _record_playback_history(self, ident: str):
+        """Record item playback to history."""
+        try:
+            import json
+            
+            # Get current item info from catalogue
+            media_type = self.params.get("media_type", "movie")
+            item_info = self._get_item_info_by_ident(ident)
+            
+            if not item_info:
+                self._logger(f"Could not get item info for ident: {ident}", xbmc.LOGWARNING)
+                return
+            
+            # Extract item data with real information
+            item_data = {
+                "ident": ident,
+                "title": item_info.get("title", f"Video {ident}"),
+                "media_type": media_type,
+                "play_date": str(datetime.datetime.now()),
+                "year": item_info.get("year"),
+                "thumb": item_info.get("thumb"),
+                "plot": item_info.get("plot"),
+                "season": item_info.get("season"),
+                "episode": item_info.get("episode")
+            }
+            
+            # Update recent items (keep last 30)
+            recent_json = self.addon.getSetting("recent_items") or "[]"
+            recent_items = json.loads(recent_json)
+            
+            # Remove item if already exists to avoid duplicates
+            recent_items = [item for item in recent_items if item.get("ident") != ident]
+            
+            # Add to front of list
+            recent_items.insert(0, item_data)
+            
+            # Keep only last 30 items
+            recent_items = recent_items[:30]
+            
+            self.addon.setSetting("recent_items", json.dumps(recent_items))
+            
+            self._logger(f"Saved {len(recent_items)} recent items to storage. Latest: {item_data['title']}", xbmc.LOGINFO)
+            
+            # Update frequent items (play count)
+            frequent_json = self.addon.getSetting("frequent_items") or "[]"
+            frequent_items = json.loads(frequent_json)
+            
+            # Find existing item or create new one
+            found = False
+            for item in frequent_items:
+                if item.get("ident") == ident:
+                    item["play_count"] = item.get("play_count", 0) + 1
+                    item["last_played"] = str(datetime.datetime.now())
+                    found = True
+                    break
+            
+            if not found:
+                item_data["play_count"] = 1
+                item_data["last_played"] = str(datetime.datetime.now())
+                frequent_items.append(item_data)
+            
+            # Keep only top 50 most played items
+            frequent_items = sorted(frequent_items, key=lambda x: x.get("play_count", 0), reverse=True)[:50]
+            
+            self.addon.setSetting("frequent_items", json.dumps(frequent_items))
+            
+            self._logger(f"Recorded playback history for ident: {ident}", xbmc.LOGDEBUG)
+            
+        except Exception as e:
+            self._logger(f"Error recording playback history: {e}", xbmc.LOGERROR)
+
+    def _get_item_info_by_ident(self, ident: str) -> dict:
+        """Get item information by ident from various sources."""
+        try:
+            # Method 1: Try to get from current browse results if available
+            if hasattr(self, '_current_items'):
+                for item in self._current_items:
+                    if getattr(item, 'ident', None) == ident:
+                        return self._extract_item_info(item)
+            
+            # Method 2: Try to search by ident directly (if supported by API)
+            try:
+                # This would require API method to get item by ident
+                # For now, we'll use a simplified approach
+                pass
+            except:
+                pass
+            
+            # Method 3: Use stored context from params if available
+            context_title = self.params.get("context_title")
+            context_year = self.params.get("context_year")
+            if context_title:
+                return {
+                    "title": context_title,
+                    "year": context_year,
+                    "thumb": None,
+                    "plot": None,
+                    "season": self.params.get("season"),
+                    "episode": self.params.get("episode")
+                }
+            
+            # Fallback: Basic info from ident
+            return {
+                "title": f"Položka {ident[:8]}...",  # Show first 8 chars of ident
+                "year": None,
+                "thumb": None,
+                "plot": None,
+                "season": None,
+                "episode": None
+            }
+            
+        except Exception as e:
+            self._logger(f"Error getting item info for {ident}: {e}", xbmc.LOGWARNING)
+            return {
+                "title": f"Položka {ident[:8]}...",
+                "year": None,
+                "thumb": None,
+                "plot": None,
+                "season": None,
+                "episode": None
+            }
+
+    def _extract_item_info(self, item) -> dict:
+        """Extract information from catalogue item."""
+        info = {}
+        
+        # Title
+        if hasattr(item, 'metadata') and item.metadata:
+            info["title"] = item.metadata.get("title", item.cleaned_title if hasattr(item, 'cleaned_title') else str(item))
+        elif hasattr(item, 'cleaned_title'):
+            info["title"] = item.cleaned_title
+        else:
+            info["title"] = str(item)
+        
+        # Year
+        if hasattr(item, 'metadata') and item.metadata:
+            info["year"] = item.metadata.get("year")
+        elif hasattr(item, 'guessed_year'):
+            info["year"] = item.guessed_year
+        else:
+            info["year"] = None
+            
+        # Thumbnail
+        if hasattr(item, 'metadata') and item.metadata and item.metadata.get("poster"):
+            info["thumb"] = item.metadata.get("poster")
+        elif hasattr(item, 'preview_image') and item.preview_image:
+            info["thumb"] = item.preview_image
+        else:
+            info["thumb"] = None
+            
+        # Plot
+        if hasattr(item, 'metadata') and item.metadata:
+            info["plot"] = item.metadata.get("plot")
+        else:
+            info["plot"] = None
+            
+        # Season/Episode
+        info["season"] = getattr(item, 'season', None) if hasattr(item, 'season') else None
+        info["episode"] = getattr(item, 'episode', None) if hasattr(item, 'episode') else None
+        
+        return info
+
+    # ------------------------------------------------------------------
+    # SledujFilmy.io methods (FREE Cloudflare bypass with cloudscraper)
+    # ------------------------------------------------------------------
+    
+    def show_sledujfilmy_genres(self) -> None:
+        """Show genre selection for SledujFilmy.io"""
+        if not self.sledujfilmy_api:
+            self.notify("SledujFilmy.io není aktivní. Zapněte v nastavení.", level=xbmc.LOGWARNING)
+            return
+        
+        xbmcplugin.setPluginCategory(self.handle, "SledujFilmy.io - Žánry")
+        xbmcplugin.setContent(self.handle, "videos")
+        
+        # Add "All films" option
+        all_item = xbmcgui.ListItem(label="[COLOR yellow]📽️ Všechny filmy[/COLOR]")
+        all_url = self.build_url({"action": "sledujfilmy_films", "genre": "all", "page": "1"})
+        xbmcplugin.addDirectoryItem(self.handle, all_url, all_item, isFolder=True)
+        
+        # Add genre items
+        for genre_name in sorted(self.sledujfilmy_api.GENRES.keys()):
+            genre_slug = self.sledujfilmy_api.GENRES[genre_name]
+            item = xbmcgui.ListItem(label=f">> {genre_name}")
+            url = self.build_url({"action": "sledujfilmy_films", "genre": genre_slug, "page": "1"})
+            xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
+        
+        xbmcplugin.endOfDirectory(self.handle)
+    
+    def show_sledujfilmy_films(self) -> None:
+        """Show films from SledujFilmy.io by genre"""
+        if not self.sledujfilmy_api:
+            self.notify("SledujFilmy.io není aktivní", level=xbmc.LOGWARNING)
+            return
+        
+        genre = self.params.get("genre", "all")
+        page = int(self.params.get("page", "1"))
+        
+        # Show loading notification
+        progress = xbmcgui.DialogProgress()
+        progress.create("SledujFilmy.io", "Načítání filmů...")
+        
+        try:
+            films, has_more = self.sledujfilmy_api.get_films_by_genre(genre, page)
+            progress.close()
+            
+            if not films:
+                self.notify("Žádné filmy nenalezeny", level=xbmc.LOGINFO)
+                return
+            
+            genre_name = next((k for k, v in self.sledujfilmy_api.GENRES.items() if v == genre), "Všechny")
+            xbmcplugin.setPluginCategory(self.handle, f"SledujFilmy.io - {genre_name} (str. {page})")
+            xbmcplugin.setContent(self.handle, "movies")
+            
+            for film in films:
+                # Create list item
+                title = film.title
+                if film.year:
+                    title = f"{film.title} ({film.year})"
+                
+                # Add quality/audio indicators
+                indicators = []
+                if film.quality == "hd":
+                    indicators.append("[COLOR lime]HD[/COLOR]")
+                elif film.quality == "cam":
+                    indicators.append("[COLOR red]CAM[/COLOR]")
+                
+                if film.has_dabing:
+                    indicators.append("[COLOR cyan]CZ Dabing[/COLOR]")
+                if film.has_titulky:
+                    indicators.append("[COLOR yellow]CZ Titulky[/COLOR]")
+                
+                if indicators:
+                    title = f"{title} {' '.join(indicators)}"
+                
+                if film.rating:
+                    title = f"⭐{film.rating:.1f} {title}"
+                
+                list_item = xbmcgui.ListItem(label=title)
+                
+                # Set info
+                info_labels = {
+                    'title': film.title,
+                    'originaltitle': film.title,
+                    'year': film.year or 0,
+                    'genre': ', '.join(film.genres) if film.genres else '',
+                    'rating': film.rating or 0.0,
+                    'plot': film.description or f"Žánr: {', '.join(film.genres)}" if film.genres else "Žádný popis",
+                    'mediatype': 'movie'
+                }
+                list_item.setInfo('video', info_labels)
+                
+                # Set art
+                if film.thumbnail:
+                    list_item.setArt({'thumb': film.thumbnail, 'poster': film.thumbnail})
+                
+                # Set playable
+                list_item.setProperty('IsPlayable', 'true')
+                
+                url = self.build_url({"action": "play_sledujfilmy", "ident": film.ident, "title": film.title})
+                xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+            
+            # Add "Next page" if available
+            if has_more:
+                next_item = xbmcgui.ListItem(label=f"[COLOR yellow]>>> Další stránka ({page + 1}) >>>[/COLOR]")
+                next_url = self.build_url({"action": "sledujfilmy_films", "genre": genre, "page": str(page + 1)})
+                xbmcplugin.addDirectoryItem(self.handle, next_url, next_item, isFolder=True)
+            
+            xbmcplugin.endOfDirectory(self.handle)
+            
+        except Exception as e:
+            progress.close()
+            self._logger(f"Error loading SledujFilmy films: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při načítání filmů", level=xbmc.LOGERROR)
+    
+    def play_sledujfilmy(self) -> None:
+        """Play a film from SledujFilmy.io"""
+        if not self.sledujfilmy_api:
+            self.notify("SledujFilmy.io není aktivní", level=xbmc.LOGWARNING)
+            return
+        
+        film_slug = self.params.get("ident")
+        film_title = self.params.get("title", "Film")
+        
+        if not film_slug:
+            self.notify("Chybí identifikátor filmu", level=xbmc.LOGERROR)
+            return
+        
+        # Show loading dialog
+        progress = xbmcgui.DialogProgress()
+        progress.create("SledujFilmy.io", f"Hledání streamů pro {film_title}...")
+        
+        try:
+            streams = self.sledujfilmy_api.get_stream_urls(film_slug)
+            progress.close()
+            
+            if not streams:
+                self.notify("Nenalezeny žádné streamy", level=xbmc.LOGWARNING)
+                return
+            
+            # Use stream selector if multiple streams
+            if len(streams) > 1:
+                from .stream_selector import StreamSelectorDialog
+                
+                # Format streams for selector
+                formatted_streams = []
+                for s in streams:
+                    formatted_streams.append({
+                        'name': f"{s['source_name']} [{s['quality']}]",
+                        'ident': s['url'],
+                        'size': 0
+                    })
+                
+                selector = StreamSelectorDialog(formatted_streams)
+                selected = selector.show_selection_dialog()
+                
+                if not selected:
+                    return  # User cancelled
+                
+                stream_url = selected['ident']
+            else:
+                stream_url = streams[0]['url']
+            
+            # Try to resolve if it's an iframe
+            if streams[0].get('type') == 'iframe':
+                progress = xbmcgui.DialogProgress()
+                progress.create("SledujFilmy.io", "Rozpoznávání video URL...")
+                
+                resolved = self.sledujfilmy_api.resolve_embed(stream_url)
+                progress.close()
+                
+                if resolved:
+                    stream_url = resolved
+                else:
+                    self._logger(f"Could not resolve iframe, trying to play anyway: {stream_url}", xbmc.LOGWARNING)
+            
+            # Create playable item
+            list_item = xbmcgui.ListItem(label=film_title, path=stream_url)
+            list_item.setProperty('IsPlayable', 'true')
+            list_item.setInfo('video', {'title': film_title, 'mediatype': 'movie'})
+            
+            # Set stream headers if needed
+            if '|' not in stream_url and not stream_url.startswith('plugin://'):
+                # Add headers for direct streams
+                stream_url = f"{stream_url}|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                list_item.setPath(stream_url)
+            
+            xbmcplugin.setResolvedUrl(self.handle, True, list_item)
+            self._logger(f"Playing SledujFilmy stream: {stream_url[:100]}...", xbmc.LOGINFO)
+            
+        except Exception as e:
+            progress.close()
+            self._logger(f"Error playing SledujFilmy stream: {e}", xbmc.LOGERROR)
+            self.notify("Chyba při přehrávání", level=xbmc.LOGERROR)
+
+    # ------------------------------------------------------------------
+    # Prehraj.to methods
+    # ------------------------------------------------------------------
+
+    def show_prehrajto_menu(self) -> None:
+        """Top-level Prehraj.to menu: Hledat / Filmy / Seriály / Novinky."""
+        xbmcplugin.setPluginCategory(self.handle, "Prehraj.to – Hledat film")
+        xbmcplugin.setContent(self.handle, "videos")
+
+        entries = [
+            ("[COLOR deeppink]🔍 Hledat[/COLOR]",   {"action": "prehrajto_search"}),
+            ("[COLOR lime]🎬 Filmy[/COLOR]",          {"action": "prehrajto_movies"}),
+            ("[COLOR cyan]📺 Seriály[/COLOR]",        {"action": "prehrajto_tvshows"}),
+            ("[COLOR yellow]🆕 Novinky[/COLOR]",      {"action": "prehrajto_news"}),
+        ]
+
+        for label, params in entries:
+            url = self.build_url(params)
+            item = xbmcgui.ListItem(label=label)
+            xbmcplugin.addDirectoryItem(self.handle, url, item, isFolder=True)
+
+        xbmcplugin.endOfDirectory(self.handle)
+
+    # ---- Hledat ----
+
+    def show_prehrajto_search(self) -> None:
+        """Keyboard search → show results on prehraj.to."""
+        query = self.dialog.input("Zadejte název pro hledání na Prehraj.to")
+        if not query:
+            return
+        self.params["query"] = query
+        self.show_prehrajto_results()
+
+    # ---- Filmy / Seriály / Novinky ----
+
+    def show_prehrajto_movies(self) -> None:
+        """Show movie category menu (uses metadata DB)."""
+        xbmcplugin.setPluginCategory(self.handle, "Prehraj.to – Filmy")
+        xbmcplugin.setContent(self.handle, "videos")
+        entries = [
+            ("Populární filmy",        {"action": "prehrajto_browse",       "media_type": "movie", "category": "popular"}),
+            ("Nejlépe hodnocené",      {"action": "prehrajto_browse",       "media_type": "movie", "category": "top_rated"}),
+            ("V kinech",               {"action": "prehrajto_browse",       "media_type": "movie", "category": "now_playing"}),
+            ("Připravované",           {"action": "prehrajto_browse",       "media_type": "movie", "category": "upcoming"}),
+            ("[COLOR yellow]Podle žánru[/COLOR]",     {"action": "prehrajto_genres",       "media_type": "movie"}),
+            ("[COLOR cyan]Podle roku vydání[/COLOR]", {"action": "prehrajto_year_picker",   "media_type": "movie"}),
+        ]
+        for label, params in entries:
+            url = self.build_url(params)
+            xbmcplugin.addDirectoryItem(self.handle, url, xbmcgui.ListItem(label=label), isFolder=True)
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_prehrajto_tvshows(self) -> None:
+        """Show TV show category menu (uses metadata DB)."""
+        xbmcplugin.setPluginCategory(self.handle, "Prehraj.to – Seriály")
+        xbmcplugin.setContent(self.handle, "videos")
+        entries = [
+            ("Populární seriály",      {"action": "prehrajto_browse",       "media_type": "tvshow", "category": "popular"}),
+            ("Nejlépe hodnocené",      {"action": "prehrajto_browse",       "media_type": "tvshow", "category": "top_rated"}),
+            ("Vysílané dnes",          {"action": "prehrajto_browse",       "media_type": "tvshow", "category": "airing_today"}),
+            ("Aktuálně vysílané",      {"action": "prehrajto_browse",       "media_type": "tvshow", "category": "on_the_air"}),
+            ("[COLOR yellow]Podle žánru[/COLOR]",     {"action": "prehrajto_genres",       "media_type": "tvshow"}),
+            ("[COLOR cyan]Podle roku vydání[/COLOR]", {"action": "prehrajto_year_picker",   "media_type": "tvshow"}),
+        ]
+        for label, params in entries:
+            url = self.build_url(params)
+            xbmcplugin.addDirectoryItem(self.handle, url, xbmcgui.ListItem(label=label), isFolder=True)
+        xbmcplugin.endOfDirectory(self.handle)
+
+    # ---- Podle žánru ----
+
+    def show_prehrajto_genres(self) -> None:
+        """Lists genres from metadata DB for Prehraj.to."""
+        media_type = self.params.get("media_type", "movie")
+
+        if not self.metadata or not self.metadata.has_providers():
+            self.notify("Metadata DB není k dispozici", level=xbmc.LOGWARNING)
+            return
+
+        try:
+            genres = self.metadata.get_genre_list(media_type)
+        except Exception as exc:
+            self._logger(f"Prehrajto genres error: {exc}", xbmc.LOGERROR)
+            genres = None
+
+        if not genres:
+            self.notify("Žánry nejsou k dispozici", level=xbmc.LOGINFO)
+            return
+
+        media_label = "Filmy" if media_type == "movie" else "Seriály"
+        xbmcplugin.setPluginCategory(self.handle, f"Prehraj.to – {media_label} – Žánry")
+        xbmcplugin.setContent(self.handle, "videos")
+
+        for genre_id, genre_name in sorted(genres.items(), key=lambda x: x[1]):
+            url = self.build_url({
+                "action": "prehrajto_genre_content",
+                "media_type": media_type,
+                "genre_id": genre_id,
+                "genre_name": genre_name,
+                "page": "1",
+            })
+            xbmcplugin.addDirectoryItem(self.handle, url, xbmcgui.ListItem(label=genre_name), isFolder=True)
+
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_prehrajto_genre_content(self) -> None:
+        """Show movies/tvshows for a selected genre, then search prehraj.to on click."""
+        media_type = self.params.get("media_type", "movie")
+        genre_id = int(self.params.get("genre_id", 0))
+        genre_name = self.params.get("genre_name", "")
+        page = int(self.params.get("page", "1"))
+
+        if not self.metadata or not self.metadata.has_providers():
+            self.notify("Metadata DB není k dispozici", level=xbmc.LOGWARNING)
+            return
+
+        try:
+            if media_type == "movie":
+                content = self.metadata.get_movies_by_genre(genre_id, page)
+            else:
+                content = self.metadata.get_tv_shows_by_genre(genre_id, page)
+        except Exception as exc:
+            self._logger(f"Prehrajto genre content error: {exc}", xbmc.LOGERROR)
+            self.notify("Chyba při načítání", level=xbmc.LOGERROR)
+            return
+
+        if not content:
+            self.notify("Žádný obsah nenalezen", level=xbmc.LOGINFO)
+            return
+
+        media_label = "Filmy" if media_type == "movie" else "Seriály"
+        xbmcplugin.setPluginCategory(self.handle, f"Prehraj.to – {media_label} – {genre_name} (str. {page})")
+        xbmcplugin.setContent(self.handle, "videos")
+        self._prehrajto_render_content_list(content, media_type)
+
+        if len(content) >= 20:
+            next_params = dict(self.params)
+            next_params["page"] = str(page + 1)
+            xbmcplugin.addDirectoryItem(
+                self.handle, self.build_url(next_params),
+                xbmcgui.ListItem(label=f"Další strana ({page + 1})"), isFolder=True,
+            )
+        xbmcplugin.endOfDirectory(self.handle)
+
+    # ---- Podle roku vydání ----
+
+    def show_prehrajto_year_picker(self) -> None:
+        """Show a list of years for the user to choose from."""
+        media_type = self.params.get("media_type", "movie")
+        media_label = "Filmy" if media_type == "movie" else "Seriály"
+        xbmcplugin.setPluginCategory(self.handle, f"Prehraj.to – {media_label} – Rok vydání")
+        xbmcplugin.setContent(self.handle, "videos")
+
+        current_year = datetime.datetime.now().year
+        for year in range(current_year, 1959, -1):
+            url = self.build_url({
+                "action": "prehrajto_year_content",
+                "media_type": media_type,
+                "year": str(year),
+                "page": "1",
+            })
+            xbmcplugin.addDirectoryItem(self.handle, url, xbmcgui.ListItem(label=str(year)), isFolder=True)
+
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def show_prehrajto_year_content(self) -> None:
+        """Show movies/tvshows for a selected year, then search prehraj.to on click."""
+        media_type = self.params.get("media_type", "movie")
+        year = int(self.params.get("year", datetime.datetime.now().year))
+        page = int(self.params.get("page", "1"))
+
+        if not self.metadata or not self.metadata.has_providers():
+            self.notify("Metadata DB není k dispozici", level=xbmc.LOGWARNING)
+            return
+
+        try:
+            if media_type == "movie":
+                content = self.metadata.get_movies_by_year(year, page)
+            else:
+                content = self.metadata.get_tv_shows_by_year(year, page)
+        except Exception as exc:
+            self._logger(f"Prehrajto year content error: {exc}", xbmc.LOGERROR)
+            self.notify("Chyba při načítání", level=xbmc.LOGERROR)
+            return
+
+        if not content:
+            self.notify(f"Žádný obsah pro rok {year}", level=xbmc.LOGINFO)
+            return
+
+        media_label = "Filmy" if media_type == "movie" else "Seriály"
+        xbmcplugin.setPluginCategory(self.handle, f"Prehraj.to – {media_label} – {year} (str. {page})")
+        xbmcplugin.setContent(self.handle, "videos")
+        self._prehrajto_render_content_list(content, media_type)
+
+        if len(content) >= 20:
+            next_params = dict(self.params)
+            next_params["page"] = str(page + 1)
+            xbmcplugin.addDirectoryItem(
+                self.handle, self.build_url(next_params),
+                xbmcgui.ListItem(label=f"Další strana ({page + 1})"), isFolder=True,
+            )
+        xbmcplugin.endOfDirectory(self.handle)
+
+    def _prehrajto_render_content_list(self, content, media_type: str) -> None:
+        """Shared helper: render a metadata content list as Prehraj.to search links."""
+        for item in content:
+            title = item.get("title") or item.get("name", "")
+            year = item.get("year")
+            overview = item.get("overview", "")
+            poster = item.get("poster_path", "")
+            fanart = item.get("backdrop_path", "")
+            rating = item.get("vote_average", 0)
+
+            label = f"{title} ({year})" if year else title
+            list_item = xbmcgui.ListItem(label=label)
+            if poster:
+                list_item.setArt({"poster": poster, "thumb": poster})
+            if fanart:
+                list_item.setArt({"fanart": fanart})
+            list_item.setInfo("video", {
+                "title": title,
+                "plot": overview,
+                "year": year,
+                "rating": rating,
+                "mediatype": "movie" if media_type == "movie" else "tvshow",
+            })
+            search_query = f"{title} {year}" if year else title
+            url = self.build_url({
+                "action": "prehrajto_results",
+                "query": search_query,
+                "title": title,
+                "year": year or "",
+            })
+            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=True)
+
+    def show_prehrajto_news(self) -> None:
+        """Show new/upcoming films from metadata DB for Prehraj.to search."""
+        self.params["media_type"] = "movie"
+        self.params["category"] = "upcoming"
+        self.show_prehrajto_browse()
+
+    # ---- Catalog list (metadata) ----
+
+    def show_prehrajto_browse(self) -> None:
+        """List content from the metadata DB; clicking a title searches prehraj.to."""
+        media_type = self.params.get("media_type", "movie")
+        category = self.params.get("category", "popular")
+        page = int(self.params.get("page", "1"))
+
+        if not self.metadata or not self.metadata.has_providers():
+            # Metadata not available – fall back to manual search
+            self.notify(
+                "Metadata DB není k dispozici – použijte ruční vyhledávání",
+                level=xbmc.LOGWARNING,
+            )
+            self.show_prehrajto_search()
+            return
+
+        movie_methods = {
+            "popular":     "get_popular_movies",
+            "top_rated":   "get_top_rated_movies",
+            "now_playing": "get_now_playing_movies",
+            "upcoming":    "get_upcoming_movies",
+        }
+        tv_methods = {
+            "popular":     "get_popular_tv_shows",
+            "top_rated":   "get_top_rated_tv_shows",
+            "airing_today":"get_airing_today_tv_shows",
+            "on_the_air":  "get_on_the_air_tv_shows",
+        }
+
+        method_map = movie_methods if media_type == "movie" else tv_methods
+        method_name = method_map.get(category)
+        method = getattr(self.metadata, method_name, None) if method_name else None
+
+        if not method:
+            self.notify("Kategorie není k dispozici", level=xbmc.LOGWARNING)
+            return
+
+        try:
+            content = method(page)
+        except Exception as exc:
+            self._logger(f"Prehrajto browse metadata error: {exc}", xbmc.LOGERROR)
+            self.notify("Chyba při načítání z databáze", level=xbmc.LOGERROR)
+            return
+
+        if not content:
+            self.notify("Žádný obsah nenalezen", level=xbmc.LOGINFO)
+            return
+
+        cat_labels = {
+            "popular": "Populární", "top_rated": "Nejlépe hodnocené",
+            "now_playing": "V kinech", "upcoming": "Připravované",
+            "airing_today": "Vysílané dnes", "on_the_air": "Aktuálně vysílané",
+        }
+        cat_label = cat_labels.get(category, category)
+        media_label = "Filmy" if media_type == "movie" else "Seriály"
+        xbmcplugin.setPluginCategory(
+            self.handle, f"Prehraj.to – {media_label} – {cat_label} (str. {page})"
+        )
+        xbmcplugin.setContent(self.handle, "videos")
+        self._prehrajto_render_content_list(content, media_type)
+
+        # Next page
+        if len(content) >= 20:
+            next_params = dict(self.params)
+            next_params["page"] = str(page + 1)
+            next_url = self.build_url(next_params)
+            xbmcplugin.addDirectoryItem(
+                self.handle, next_url,
+                xbmcgui.ListItem(label=f"Další strana ({page + 1})"),
+                isFolder=True,
+            )
+
+        xbmcplugin.endOfDirectory(self.handle)
+
+    # ---- Results list (prehraj.to results) ----
+
+    def show_prehrajto_results(self) -> None:
+        """Search prehraj.to for *params[query]* and list results."""
+        if not self.prehrajto_api:
+            self.notify("Prehraj.to API není dostupné", level=xbmc.LOGERROR)
+            xbmcplugin.endOfDirectory(self.handle, succeeded=False)
+            return
+
+        query = self.params.get("query", "").strip()
+        title = self.params.get("title", "") or query
+        year = self.params.get("year", "")
+
+        if not query:
+            self.notify("Prázdný dotaz", level=xbmc.LOGWARNING)
+            xbmcplugin.endOfDirectory(self.handle, succeeded=False)
+            return
+
+        progress = xbmcgui.DialogProgress()
+        progress.create("Prehraj.to", f"Hledám: {query}...")
+
+        try:
+            results = self.prehrajto_api.search(query)
+        except Exception as exc:
+            self._logger(f"Prehraj.to search exception: {exc}", xbmc.LOGERROR)
+            results = []
+        finally:
+            progress.close()
+
+        display_title = f"{title} ({year})" if year else title
+        xbmcplugin.setPluginCategory(self.handle, f"Prehraj.to – {display_title}")
+        xbmcplugin.setContent(self.handle, "videos")
+
+        if not results:
+            xbmcplugin.endOfDirectory(self.handle)
+            self.notify(f"Na Prehraj.to nic nenalezeno pro: {query}", level=xbmc.LOGINFO)
+            return
+
+        for result in results:
+            # Build label with quality/size/duration info
+            label_parts = []
+            if result.quality:
+                label_parts.append(f"[COLOR lime][{result.quality}][/COLOR]")
+            if result.size_str:
+                label_parts.append(f"[COLOR lightgray][{result.size_str}][/COLOR]")
+            if result.duration:
+                label_parts.append(f"[{result.duration}]")
+
+            label = result.title
+            if label_parts:
+                label = f"{'  '.join(label_parts)}  {label}"
+
+            list_item = xbmcgui.ListItem(label=label)
+            list_item.setInfo("video", {
+                "title": result.title,
+                "plot": (
+                    f"Prehraj.to\n"
+                    f"Kvalita: {result.quality or '?'}\n"
+                    f"Velikost: {result.size_str or '?'}\n"
+                    f"Délka: {result.duration or '?'}"
+                ),
+                "mediatype": "video",
+            })
+            list_item.setProperty("IsPlayable", "true")
+
+            url = self.build_url({
+                "action": "play_prehrajto",
+                "video_url": result.url,
+                "title": result.title,
+            })
+            xbmcplugin.addDirectoryItem(self.handle, url, list_item, isFolder=False)
+
+        xbmcplugin.endOfDirectory(self.handle)
+
+    # ---- Play ----
+
+    def play_prehrajto(self) -> None:
+        """Resolve and play a prehraj.to video URL."""
+        if not self.prehrajto_api:
+            self.notify("Prehraj.to API není dostupné", level=xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+
+        video_url = self.params.get("video_url", "")
+        film_title = self.params.get("title", "Video")
+
+        if not video_url:
+            self.notify("Chybí URL videa", level=xbmc.LOGERROR)
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+
+        progress = xbmcgui.DialogProgress()
+        progress.create("Prehraj.to", f"Načítám stream pro: {film_title}...")
+
+        try:
+            stream_url = self.prehrajto_api.get_stream_url(video_url)
+        except Exception as exc:
+            self._logger(f"Prehraj.to play error: {exc}", xbmc.LOGERROR)
+            stream_url = None
+        finally:
+            progress.close()
+
+        if not stream_url:
+            # Show a helpful dialog instead of silently failing
+            self.dialog.ok(
+                "Prehraj.to",
+                (
+                    f"Stream pro '[B]{film_title}[/B]' se nepodařilo automaticky extrahovat.\n\n"
+                    "Stránka může vyžadovat přihlášení nebo JavaScript.\n\n"
+                    f"[COLOR cyan]Odkaz na video:[/COLOR]\n{video_url}"
+                ),
+            )
+            xbmcplugin.setResolvedUrl(self.handle, False, xbmcgui.ListItem())
+            return
+
+        self._logger(f"Prehraj.to playing: {stream_url[:100]}", xbmc.LOGINFO)
+
+        # Append User-Agent header to the stream URL so Kodi can play it
+        if "|" not in stream_url:
+            stream_url = (
+                f"{stream_url}"
+                "|User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+
+        list_item = xbmcgui.ListItem(label=film_title, path=stream_url)
+        list_item.setProperty("IsPlayable", "true")
+        list_item.setInfo("video", {"title": film_title, "mediatype": "video"})
+        xbmcplugin.setResolvedUrl(self.handle, True, list_item)

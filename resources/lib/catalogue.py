@@ -8,13 +8,15 @@ import xbmc
 from .metadata import MetadataManager
 from .parser import MediaItem, parse_media_entry
 from .webshare_api import WebshareAPI
+from .sdilej_api import SdilejAPI, SdilejItem
 
 
 class WebshareCatalogue:
     """Compose Webshare search results into Kodi-ready media items."""
 
-    def __init__(self, api: WebshareAPI, metadata: Optional[MetadataManager], settings, logger):
+    def __init__(self, api: WebshareAPI, metadata: Optional[MetadataManager], settings, logger, sdilej_api: Optional[SdilejAPI] = None):
         self._api = api
+        self._sdilej_api = sdilej_api
         self._metadata = metadata
         self._settings = settings
         self._logger = logger or (lambda msg, level=xbmc.LOGINFO: xbmc.log(msg, level))
@@ -103,6 +105,29 @@ class WebshareCatalogue:
                 return False
         return True
 
+    def _convert_sdilej_item(self, item: SdilejItem) -> MediaItem:
+        media_type = "movie"
+        lower_title = item.title.lower()
+        if any(x in lower_title for x in ['s0', 'e0', 's1', 'e1', 'serie', 'epizoda']):
+             media_type = "tvshow"
+        
+        return MediaItem(
+            ident=item.ident,
+            original_name=item.title,
+            extension="mkv" if "mkv" in lower_title else "avi",
+            size=item.size,
+            preview_image=item.thumbnail,
+            preview_strip=None,
+            preview_count=None,
+            votes_positive=None,
+            votes_negative=None,
+            password_protected=False,
+            media_type=media_type,
+            cleaned_title=item.title,
+            sort_title=item.title,
+            guessed_year=None
+        )
+
     def fetch(
         self,
         media_type: Optional[str] = None,
@@ -119,6 +144,19 @@ class WebshareCatalogue:
         limit = page_size or self._settings.page_size
         gathered: List[MediaItem] = []
         offset = max(0, start_offset)
+        
+        # Fetch Sdilej results if query is present and we are at the start
+        if self._sdilej_api and query and offset == 0:
+            try:
+                sdilej_results = self._sdilej_api.search(query)
+                for s_item in sdilej_results:
+                    item = self._convert_sdilej_item(s_item)
+                    # Basic filtering for Sdilej items
+                    if self._passes_filters(item, media_type, letter, quality, audio, subtitles, genre):
+                        gathered.append(item)
+            except Exception as e:
+                self._logger(f"Error fetching Sdilej results: {e}", xbmc.LOGERROR)
+
         total: Optional[int] = None
         default_fetch_size = self._settings.page_size
         while len(gathered) < limit:

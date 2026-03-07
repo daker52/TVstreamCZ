@@ -25,6 +25,7 @@ class AddonSettings:
     csfd_user_agent: str
     download_type: str
     force_https: bool
+    sledujfilmy_enabled: bool
 
     @classmethod
     def load(cls, addon: Optional[xbmcaddon.Addon] = None) -> "AddonSettings":
@@ -91,6 +92,10 @@ class AddonSettings:
         csfd_user_agent = _get_string("csfd_user_agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
         download_type = _get_enum("download_type", download_options)
         force_https = _get_bool("force_https", True)
+        
+        # SledujFilmy.io settings (FREE with cloudscraper)
+        sledujfilmy_enabled = _get_bool("sledujfilmy_enabled", False)
+        
         return cls(
             username=username.strip(),
             password=password,
@@ -106,4 +111,5 @@ class AddonSettings:
             csfd_user_agent=csfd_user_agent.strip(),
             download_type=download_type,
             force_https=force_https,
+            sledujfilmy_enabled=sledujfilmy_enabled,
         )
