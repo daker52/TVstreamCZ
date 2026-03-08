@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogNotification – toast notification (bottom-right) -->
+<window>
+  <type>dialog</type>
+  <zorder>98</zorder>
+  <controls>
+    <control type="group">
+      <left>960</left><top>620</top>
+      <width>300</width><height>70</height>
+
+      <!-- Panel BG -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>300</width><height>70</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <!-- Left cyan accent bar -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>4</width><height>70</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <!-- Icon (id=18) -->
+      <control type="image" id="18">
+        <left>14</left><top>13</top>
+        <width>44</width><height>44</height>
+        <texture></texture>
+      </control>
+
+      <!-- Title (id=1) -->
+      <control type="label" id="1">
+        <left>66</left><top>10</top>
+        <width>224</width><height>26</height>
+        <font>fontBold13</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Message (id=2) -->
+      <control type="label" id="2">
+        <left>66</left><top>36</top>
+        <width>224</width><height>24</height>
+        <font>font12</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+
+    </control>
+  </controls>
+</window>

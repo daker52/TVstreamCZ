@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fonts>
+  <fontset id="Default">
+    <!-- Small -->
+    <font>
+      <name>font10</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>10</size>
+    </font>
+    <font>
+      <name>font11</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>11</size>
+    </font>
+    <font>
+      <name>font12</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>12</size>
+    </font>
+    <!-- Body -->
+    <font>
+      <name>font13</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>13</size>
+    </font>
+    <font>
+      <name>font14</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>14</size>
+    </font>
+    <font>
+      <name>font16</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>16</size>
+    </font>
+    <!-- Medium -->
+    <font>
+      <name>font18</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>18</size>
+    </font>
+    <font>
+      <name>font20</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>20</size>
+    </font>
+    <!-- Large -->
+    <font>
+      <name>font24</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>24</size>
+    </font>
+    <font>
+      <name>font28</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>28</size>
+    </font>
+    <font>
+      <name>font32</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>32</size>
+    </font>
+    <font>
+      <name>font36</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>36</size>
+    </font>
+    <!-- Hero / Display -->
+    <font>
+      <name>font48</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>48</size>
+    </font>
+    <font>
+      <name>font60</name>
+      <filename>special://xbmc/media/Fonts/arial.ttf</filename>
+      <size>60</size>
+    </font>
+    <!-- Bold variants -->
+    <font>
+      <name>fontBold13</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>13</size>
+    </font>
+    <font>
+      <name>fontBold16</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>16</size>
+    </font>
+    <font>
+      <name>fontBold20</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>20</size>
+    </font>
+    <font>
+      <name>fontBold24</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>24</size>
+    </font>
+    <font>
+      <name>fontBold32</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>32</size>
+    </font>
+    <font>
+      <name>fontBold48</name>
+      <filename>special://xbmc/media/Fonts/arialbd.ttf</filename>
+      <size>48</size>
+    </font>
+  </fontset>
+</fonts>

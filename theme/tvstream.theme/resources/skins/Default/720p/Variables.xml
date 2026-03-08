@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<variables>
+
+  <!-- Media type label -->
+  <variable name="MediaType">
+    <value condition="Container.Content(movies)">Film</value>
+    <value condition="Container.Content(tvshows)">Seriál</value>
+    <value condition="Container.Content(episodes)">Epizoda</value>
+    <value condition="Container.Content(musicvideos)">Hudební video</value>
+    <value>Médium</value>
+  </variable>
+
+  <!-- Runtime formatted -->
+  <variable name="RuntimeFormatted">
+    <value condition="!String.IsEmpty(ListItem.Duration)">$INFO[ListItem.Duration]</value>
+    <value></value>
+  </variable>
+
+  <!-- Genre + runtime combined -->
+  <variable name="GenreRuntime">
+    <value condition="!String.IsEmpty(ListItem.Genre) + !String.IsEmpty(ListItem.Duration)">$INFO[ListItem.Genre]  |  $INFO[ListItem.Duration]</value>
+    <value condition="!String.IsEmpty(ListItem.Genre)">$INFO[ListItem.Genre]</value>
+    <value condition="!String.IsEmpty(ListItem.Duration)">$INFO[ListItem.Duration]</value>
+    <value></value>
+  </variable>
+
+  <!-- Rating stars label -->
+  <variable name="RatingLabel">
+    <value condition="!String.IsEmpty(ListItem.Rating)">★ $INFO[ListItem.Rating]</value>
+    <value></value>
+  </variable>
+
+  <!-- Current window name -->
+  <variable name="WindowName">
+    <value condition="Window.IsActive(videos)">FILMY</value>
+    <value condition="Window.IsActive(music)">HUDBA</value>
+    <value condition="Window.IsActive(pictures)">FOTKY</value>
+    <value condition="Window.IsActive(home)">DOMŮ</value>
+    <value>DOMŮ</value>
+  </variable>
+
+  <!-- Nav tab active states -->
+  <variable name="NavHome">
+    <value condition="Window.IsActive(home)">$COLOR[text_nav_active]</value>
+    <value>$COLOR[text_nav]</value>
+  </variable>
+  <variable name="NavMovies">
+    <value condition="Window.IsActive(videos)">$COLOR[text_nav_active]</value>
+    <value>$COLOR[text_nav]</value>
+  </variable>
+
+</variables>

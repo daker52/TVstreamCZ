@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- VideoFullScreen.xml – id 10025 – full-screen video playback -->
+<window id="10025">
+  <type>window</type>
+  <defaultcontrol always="false">2</defaultcontrol>
+  <zorder>40</zorder>
+  <hideosd>true</hideosd>
+
+  <controls>
+
+    <!-- ═══  VIDEO SURFACE ═══ -->
+    <control type="videowindow" id="1">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+    </control>
+
+    <!-- ═══  OSD TOGGLE / ACTIVATE BUTTON (invisible) ═══ -->
+    <control type="button" id="2">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <label></label>
+      <texturefocus colordiffuse="00000000">white.png</texturefocus>
+      <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+      <onclick>ActivateWindow(VideoOSD)</onclick>
+    </control>
+
+  </controls>
+</window>

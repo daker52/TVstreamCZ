@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<includes>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       GLOBAL DEFAULTS (all windows inherit these)
+  ═══════════════════════════════════════════════════════════════ -->
+  <default type="button">
+    <texturefocus>-</texturefocus>
+    <texturenofocus>-</texturenofocus>
+    <font>font16</font>
+    <textcolor>white</textcolor>
+    <focusedcolor>$COLOR[btn_focus]</focusedcolor>
+    <disabledcolor>gray</disabledcolor>
+    <align>center</align>
+    <aligny>center</aligny>
+  </default>
+
+  <default type="label">
+    <font>font16</font>
+    <textcolor>$COLOR[text_primary]</textcolor>
+    <focusedcolor>$COLOR[text_accent]</focusedcolor>
+    <shadowcolor>$COLOR[bg_overlay]</shadowcolor>
+  </default>
+
+  <default type="edit">
+    <font>font16</font>
+    <textcolor>$COLOR[text_primary]</textcolor>
+    <hinttext>$COLOR[text_muted]</hinttext>
+    <focusedcolor>$COLOR[text_accent]</focusedcolor>
+    <texturefocus>-</texturefocus>
+    <texturenofocus>-</texturenofocus>
+  </default>
+
+  <default type="scrollbar">
+    <textureback>-</textureback>
+    <texturenib>-</texturenib>
+    <texturenibfocus>-</texturenibfocus>
+    <width>4</width>
+  </default>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       REUSABLE INCLUDES
+  ═══════════════════════════════════════════════════════════════ -->
+
+  <!-- Full-window dark background -->
+  <include name="FullBackground">
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_base]">white.png</texture>
+    </control>
+  </include>
+
+  <!-- Top navigation bar (60 px) -->
+  <include name="TopNavBar">
+    <!-- Bar background -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>60</height>
+      <texture colordiffuse="$COLOR[bg_navbar]">white.png</texture>
+    </control>
+    <!-- Logo -->
+    <control type="label">
+      <left>20</left><top>0</top>
+      <width>200</width><height>60</height>
+      <font>fontBold20</font>
+      <textcolor>$COLOR[text_primary]</textcolor>
+      <label>TV STREAM</label>
+      <aligny>center</aligny>
+    </control>
+  </include>
+
+  <!-- Rounded card background (use with colordiffuse) -->
+  <include name="CardBackground">
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>180</width><height>270</height>
+      <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+    </control>
+  </include>
+
+  <!-- Section heading label -->
+  <include name="SectionHeading">
+    <control type="label">
+      <left>30</left><top>0</top>
+      <width>600</width><height>36</height>
+      <font>fontBold20</font>
+      <textcolor>$COLOR[text_primary]</textcolor>
+      <aligny>center</aligny>
+    </control>
+  </include>
+
+  <!-- Play button -->
+  <include name="PlayButton">
+    <control type="button">
+      <left>0</left><top>0</top>
+      <width>140</width><height>36</height>
+      <font>fontBold16</font>
+      <label>▶  PŘEHRÁT</label>
+      <align>center</align><aligny>center</aligny>
+      <textcolor>$COLOR[btn_play_text]</textcolor>
+      <focusedcolor>$COLOR[text_primary]</focusedcolor>
+      <texturefocus colordiffuse="$COLOR[btn_focus]">white.png</texturefocus>
+      <texturenofocus colordiffuse="$COLOR[btn_play]">white.png</texturenofocus>
+    </control>
+  </include>
+
+  <!-- Separator line -->
+  <include name="HorizontalLine">
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>1</height>
+      <texture colordiffuse="$COLOR[separator]">white.png</texture>
+    </control>
+  </include>
+
+  <!-- Focus highlight border -->
+  <include name="FocusBorder">
+    <control type="image">
+      <left>-2</left><top>-2</top>
+      <width>184</width><height>274</height>
+      <texture colordiffuse="$COLOR[border_focus]">white.png</texture>
+      <visible>Control.HasFocus(0)</visible>
+    </control>
+  </include>
+
+  <!-- Dialog panel background -->
+  <include name="DialogBackground">
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>100%</width><height>100%</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+  </include>
+
+  <!-- Dialog box -->
+  <include name="DialogBox">
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>100%</width><height>100%</height>
+      <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+    </control>
+    <!-- Top border accent -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>100%</width><height>3</height>
+      <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+    </control>
+  </include>
+
+</includes>

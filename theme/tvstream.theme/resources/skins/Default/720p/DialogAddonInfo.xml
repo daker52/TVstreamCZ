@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogAddonInfo – addon information popup -->
+<window id="10008">
+  <type>dialog</type>
+  <zorder>88</zorder>
+  <defaultcontrol always="true">21</defaultcontrol>
+  <controls>
+
+    <!-- Overlay -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+
+    <!-- Panel -->
+    <control type="group">
+      <left>80</left><top>60</top>
+      <width>1120</width><height>600</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1120</width><height>600</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1120</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <!-- Thumbnail (id=1) -->
+      <control type="image" id="1">
+        <left>20</left><top>20</top>
+        <width>200</width><height>200</height>
+        <aspectratio>keep</aspectratio>
+        <texture>DefaultAddon.png</texture>
+      </control>
+
+      <!-- Title (id=2) -->
+      <control type="label" id="2">
+        <left>240</left><top>20</top>
+        <width>860</width><height>44</height>
+        <font>fontBold24</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Version (id=5) -->
+      <control type="label" id="5">
+        <left>240</left><top>68</top>
+        <width>860</width><height>30</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Author (id=7) -->
+      <control type="label" id="7">
+        <left>240</left><top>100</top>
+        <width>860</width><height>30</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Summary (id=3) -->
+      <control type="textbox" id="3">
+        <left>240</left><top>136</top>
+        <width>860</width><height>80</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+        <autoscroll>false</autoscroll>
+      </control>
+
+      <control type="image">
+        <left>20</left><top>235</top>
+        <width>1080</width><height>1</height>
+        <texture colordiffuse="$COLOR[separator]">white.png</texture>
+      </control>
+
+      <!-- Description (id=4) -->
+      <control type="textbox" id="4">
+        <left>20</left><top>244</top>
+        <width>1080</width><height>260</height>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+        <autoscroll>false</autoscroll>
+      </control>
+
+      <!-- Buttons -->
+      <!-- Install/Enable (id=21) -->
+      <control type="button" id="21">
+        <left>20</left><top>530</top>
+        <width>220</width><height>50</height>
+        <label>$LOCALIZE[24038]</label>
+        <font>fontBold16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[accent_cyan]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus>
+      </control>
+
+      <!-- Uninstall (id=24) -->
+      <control type="button" id="24">
+        <left>260</left><top>530</top>
+        <width>220</width><height>50</height>
+        <label>$LOCALIZE[24037]</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus>
+      </control>
+
+      <!-- Close (id=12) -->
+      <control type="button" id="12">
+        <left>880</left><top>530</top>
+        <width>220</width><height>50</height>
+        <label>$LOCALIZE[222]</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus>
+      </control>
+
+    </control>
+
+  </controls>
+</window>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogVolumeBar – volume OSD (top-right) -->
+<window>
+  <type>dialog</type>
+  <zorder>95</zorder>
+  <controls>
+    <control type="group">
+      <left>1000</left><top>20</top>
+      <width>260</width><height>50</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>260</width><height>50</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>260</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <!-- Speaker icon -->
+      <control type="label">
+        <left>10</left><top>0</top>
+        <width>30</width><height>50</height>
+        <font>font18</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>🔊</label>
+        <aligny>center</aligny>
+      </control>
+
+      <!-- Volume % label (id=1) -->
+      <control type="label" id="1">
+        <left>200</left><top>0</top>
+        <width>50</width><height>50</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>$INFO[Player.Volume]</label>
+        <align>right</align><aligny>center</aligny>
+      </control>
+
+      <!-- Volume progress bar (id=2) -->
+      <control type="progress" id="2">
+        <left>44</left><top>20</top>
+        <width>148</width><height>10</height>
+        <texturebg colordiffuse="$COLOR[progress_bg]">white.png</texturebg>
+        <textureleft colordiffuse="$COLOR[accent_cyan]">white.png</textureleft>
+        <texturemid colordiffuse="$COLOR[accent_cyan]">white.png</texturemid>
+        <textureright colordiffuse="$COLOR[accent_cyan]">white.png</textureright>
+        <textureoverlayleft>-</textureoverlayleft>
+        <textureoverlaymid>-</textureoverlaymid>
+        <textureoverlayright>-</textureoverlayright>
+      </control>
+    </control>
+  </controls>
+</window>

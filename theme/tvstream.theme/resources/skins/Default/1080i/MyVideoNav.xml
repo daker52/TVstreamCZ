@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MyVideoNav.xml – video browser (id 10006) card grid -->
+<window id="10006">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <zorder>1</zorder>
+
+  <controls>
+
+    <!-- ═══  BACKGROUND ═══ -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_base]">white.png</texture>
+    </control>
+
+    <!-- ═══  TOP NAVIGATION BAR ═══ -->
+    <control type="group">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>60</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1280</width><height>60</height>
+        <texture colordiffuse="$COLOR[bg_navbar]">white.png</texture>
+      </control>
+
+      <!-- Back button -->
+      <control type="button" id="9">
+        <left>10</left><top>10</top>
+        <width>80</width><height>40</height>
+        <label>← Zpět</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(PreviousMenu)</onclick>
+      </control>
+
+      <!-- Section title (breadcrumb) -->
+      <control type="label">
+        <left>110</left><top>0</top>
+        <width>700</width><height>60</height>
+        <font>fontBold20</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>$INFO[Container.FolderName]</label>
+        <aligny>center</aligny>
+      </control>
+
+      <!-- Item count -->
+      <control type="label">
+        <left>860</left><top>0</top>
+        <width>200</width><height>60</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[Container.NumItems] položek</label>
+        <align>right</align>
+        <aligny>center</aligny>
+      </control>
+
+      <!-- Sort button -->
+      <control type="button" id="15">
+        <left>1080</left><top>10</top>
+        <width>100</width><height>40</height>
+        <label>Řadit</label>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(Sort)</onclick>
+      </control>
+
+    </control>
+
+    <control type="image">
+      <left>0</left><top>60</top>
+      <width>1280</width><height>1</height>
+      <texture colordiffuse="$COLOR[separator]">white.png</texture>
+    </control>
+
+    <!-- ═══  CARD GRID (id=50) ═══ -->
+    <control type="panel" id="50">
+      <left>10</left><top>70</top>
+      <width>1040</width><height>640</height>
+      <itemwidth>200</itemwidth>
+      <itemheight>300</itemheight>
+      <scrolltime>300</scrolltime>
+      <pagecontrol>60</pagecontrol>
+
+      <itemlayout width="200" height="300">
+        <!-- Card BG -->
+        <control type="image">
+          <left>4</left><top>4</top>
+          <width>192</width><height>292</height>
+          <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+        </control>
+        <!-- Poster -->
+        <control type="image">
+          <left>4</left><top>4</top>
+          <width>192</width><height>248</height>
+          <texture>$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <defaultimage>DefaultVideo.png</defaultimage>
+        </control>
+        <!-- Title -->
+        <control type="label">
+          <left>8</left><top>256</top>
+          <width>184</width><height>24</height>
+          <font>font13</font>
+          <textcolor>$COLOR[text_primary]</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <align>center</align>
+        </control>
+        <!-- Year -->
+        <control type="label">
+          <left>8</left><top>278</top>
+          <width>184</width><height>20</height>
+          <font>font12</font>
+          <textcolor>$COLOR[text_secondary]</textcolor>
+          <label>$INFO[ListItem.Year]</label>
+          <align>center</align>
+        </control>
+      </itemlayout>
+
+      <focusedlayout width="200" height="300">
+        <!-- Focus border -->
+        <control type="image">
+          <left>0</left><top>0</top>
+          <width>200</width><height>300</height>
+          <texture colordiffuse="$COLOR[border_focus]">white.png</texture>
+        </control>
+        <control type="image">
+          <left>3</left><top>3</top>
+          <width>194</width><height>294</height>
+          <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+        </control>
+        <!-- Poster -->
+        <control type="image">
+          <left>4</left><top>4</top>
+          <width>192</width><height>248</height>
+          <texture>$INFO[ListItem.Art(thumb)]</texture>
+          <aspectratio>keep</aspectratio>
+          <defaultimage>DefaultVideo.png</defaultimage>
+        </control>
+        <!-- Play icon overlay -->
+        <control type="image">
+          <left>76</left><top>104</top>
+          <width>48</width><height>48</height>
+          <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+        </control>
+        <!-- Title -->
+        <control type="label">
+          <left>8</left><top>256</top>
+          <width>184</width><height>24</height>
+          <font>fontBold13</font>
+          <textcolor>$COLOR[text_accent]</textcolor>
+          <label>$INFO[ListItem.Label]</label>
+          <align>center</align>
+        </control>
+        <!-- Year -->
+        <control type="label">
+          <left>8</left><top>278</top>
+          <width>184</width><height>20</height>
+          <font>font12</font>
+          <textcolor>$COLOR[text_secondary]</textcolor>
+          <label>$INFO[ListItem.Year]</label>
+          <align>center</align>
+        </control>
+      </focusedlayout>
+
+    </control>
+
+    <!-- Scroll bar (id=60) -->
+    <control type="scrollbar" id="60">
+      <left>1058</left><top>70</top>
+      <width>14</width><height>640</height>
+      <textureback colordiffuse="$COLOR[bg_surface]">white.png</textureback>
+      <texturenib colordiffuse="$COLOR[accent_cyan]">white.png</texturenib>
+      <texturenibfocus colordiffuse="$COLOR[btn_focus]">white.png</texturenibfocus>
+    </control>
+
+    <!-- ═══  SIDE INFO PANEL ═══ -->
+    <control type="group">
+      <left>1080</left><top>70</top>
+      <width>190</width><height>640</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>190</width><height>640</height>
+        <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+      </control>
+
+      <!-- Selected item thumb -->
+      <control type="image" id="51">
+        <left>5</left><top>10</top>
+        <width>180</width><height>240</height>
+        <texture>$INFO[Container(50).ListItem.Art(thumb)]</texture>
+        <aspectratio>keep</aspectratio>
+        <defaultimage>DefaultVideo.png</defaultimage>
+      </control>
+
+      <!-- Selected title -->
+      <control type="label" id="52">
+        <left>5</left><top>258</top>
+        <width>180</width><height>44</height>
+        <font>fontBold14</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>$INFO[Container(50).ListItem.Label]</label>
+        <align>center</align>
+        <scroll>true</scroll>
+      </control>
+
+      <!-- Year / Genre -->
+      <control type="label" id="53">
+        <left>5</left><top>306</top>
+        <width>180</width><height>24</height>
+        <font>font12</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[Container(50).ListItem.Year]</label>
+        <align>center</align>
+      </control>
+
+      <!-- Rating -->
+      <control type="label" id="54">
+        <left>5</left><top>332</top>
+        <width>180</width><height>24</height>
+        <font>font12</font>
+        <textcolor>$COLOR[accent_cyan]</textcolor>
+        <label>★ $INFO[Container(50).ListItem.Rating]</label>
+        <align>center</align>
+      </control>
+
+      <!-- Plot -->
+      <control type="textbox" id="55">
+        <left>5</left><top>362</top>
+        <width>180</width><height>240</height>
+        <font>font12</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[Container(50).ListItem.Plot]</label>
+        <autoscroll>false</autoscroll>
+      </control>
+
+    </control>
+
+  </controls>
+</window>

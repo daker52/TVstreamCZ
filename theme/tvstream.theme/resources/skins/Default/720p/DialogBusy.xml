@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogBusy – loading spinner overlay -->
+<window>
+  <type>dialog</type>
+  <zorder>100</zorder>
+  <controls>
+
+    <!-- Full dim overlay -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+
+    <!-- Spinner box -->
+    <control type="group">
+      <left>540</left><top>300</top>
+      <width>200</width><height>120</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>200</width><height>120</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <!-- Cyan top accent -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>200</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <control type="image" id="10">
+        <left>75</left><top>15</top>
+        <width>50</width><height>50</height>
+        <texture>special://xbmc/addons/skin.estuary/resources/skins/Estuary/media/spinner.png</texture>
+      </control>
+
+      <control type="label">
+        <left>0</left><top>72</top>
+        <width>200</width><height>30</height>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>Načítá se…</label>
+        <align>center</align><aligny>center</aligny>
+      </control>
+    </control>
+
+  </controls>
+</window>

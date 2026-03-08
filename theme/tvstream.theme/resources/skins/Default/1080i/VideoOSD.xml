@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- VideoOSD.xml – id 10028 – on-screen display overlay -->
+<window id="10028">
+  <type>dialog</type>
+  <zorder>50</zorder>
+  <defaultcontrol always="false">32</defaultcontrol>
+  <visible>Player.HasMedia</visible>
+
+  <!-- Auto-hide after 5 s of inactivity -->
+  <hidetimeout>5000</hidetimeout>
+
+  <controls>
+
+    <!-- Dim gradient at bottom -->
+    <control type="image">
+      <left>0</left><top>520</top>
+      <width>1280</width><height>200</height>
+      <texture colordiffuse="C0000000">white.png</texture>
+    </control>
+
+    <!-- ═══  TITLE + META ROW ═══ -->
+    <control type="group">
+      <left>0</left><top>528</top>
+      <width>1280</width><height>50</height>
+
+      <!-- Title -->
+      <control type="label">
+        <left>30</left><top>0</top>
+        <width>800</width><height>50</height>
+        <font>fontBold20</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>$INFO[Player.Title]</label>
+        <aligny>center</aligny>
+      </control>
+
+      <!-- Time elapsed / total -->
+      <control type="label">
+        <left>1080</left><top>0</top>
+        <width>170</width><height>50</height>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[Player.Time]  /  $INFO[Player.Duration]</label>
+        <align>right</align>
+        <aligny>center</aligny>
+      </control>
+
+    </control>
+
+    <!-- ═══  SEEK BAR ═══ -->
+    <control type="group">
+      <left>30</left><top>582</top>
+      <width>1220</width><height>16</height>
+
+      <!-- Track BG -->
+      <control type="image">
+        <left>0</left><top>5</top>
+        <width>1220</width><height>6</height>
+        <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+      </control>
+
+      <!-- Progress fill -->
+      <control type="image">
+        <left>0</left><top>5</top>
+        <width>$INFO[Player.Progress]%</width><height>6</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <!-- Scrubber nib -->
+      <control type="image">
+        <left>$INFO[Player.Progress]%</left><top>0</top>
+        <width>16</width><height>16</height>
+        <texture colordiffuse="$COLOR[btn_focus]">white.png</texture>
+      </control>
+
+    </control>
+
+    <!-- ═══  PLAYBACK CONTROLS ═══ -->
+    <control type="group">
+      <left>0</left><top>604</top>
+      <width>1280</width><height>56</height>
+
+      <!-- Rewind -->
+      <control type="button" id="31">
+        <left>520</left><top>4</top>
+        <width>60</width><height>48</height>
+        <label>⏮</label>
+        <font>fontBold24</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_primary]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(StepBack)</onclick>
+      </control>
+
+      <!-- Play / Pause (id=32) -->
+      <control type="button" id="32">
+        <left>592</left><top>0</top>
+        <width>96</width><height>56</height>
+        <label>$INFO[Player.Playing,⏸,▶]</label>
+        <font>fontBold32</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>FF0B1632</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_play]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus>
+        <onclick>Action(Pause)</onclick>
+      </control>
+
+      <!-- Fast forward -->
+      <control type="button" id="33">
+        <left>700</left><top>4</top>
+        <width>60</width><height>48</height>
+        <label>⏭</label>
+        <font>fontBold24</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_primary]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(StepForward)</onclick>
+      </control>
+
+      <!-- Stop -->
+      <control type="button" id="34">
+        <left>780</left><top>4</top>
+        <width>60</width><height>48</height>
+        <label>⏹</label>
+        <font>fontBold24</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_primary]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(Stop)</onclick>
+      </control>
+
+      <!-- Subtitles toggle -->
+      <control type="button" id="35">
+        <left>1140</left><top>8</top>
+        <width>60</width><height>40</height>
+        <label>CC</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(ShowSubtitles)</onclick>
+      </control>
+
+      <!-- Fullscreen close -->
+      <control type="button" id="36">
+        <left>1210</left><top>8</top>
+        <width>60</width><height>40</height>
+        <label>✖</label>
+        <font>font20</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_primary]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>Action(Stop)</onclick>
+      </control>
+
+    </control>
+
+  </controls>
+</window>

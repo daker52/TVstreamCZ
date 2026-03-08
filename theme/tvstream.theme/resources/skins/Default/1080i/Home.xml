@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Home.xml – Disney+ style home screen -->
+<window id="10000">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <zorder>1</zorder>
+
+  <controls>
+
+    <!-- ═══════════════════════════════════════════
+         BACKGROUND – full dark navy
+    ═══════════════════════════════════════════ -->
+    <control type="image">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_base]">white.png</texture>
+    </control>
+
+    <!-- ═══════════════════════════════════════════
+         HERO SECTION – featured content (below navbar)
+    ═══════════════════════════════════════════ -->
+    <control type="group">
+      <left>0</left><top>60</top>
+      <width>1280</width><height>340</height>
+
+      <!-- Hero BG gradient placeholder -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1280</width><height>340</height>
+        <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+      </control>
+
+      <!-- Hero fanart from first list item -->
+      <control type="image" id="101">
+        <left>500</left><top>0</top>
+        <width>780</width><height>340</height>
+        <texture>$INFO[Container(50).ListItem.Art(fanart)]</texture>
+        <aspectratio>scale</aspectratio>
+      </control>
+
+      <!-- Gradient overlay left -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>600</width><height>340</height>
+        <texture colordiffuse="C00B1632">white.png</texture>
+      </control>
+
+      <!-- Hero meta -->
+      <control type="group">
+        <left>40</left><top>60</top>
+        <width>500</width><height>240</height>
+
+        <!-- Title -->
+        <control type="label" id="102">
+          <left>0</left><top>0</top>
+          <width>500</width><height>60</height>
+          <font>fontBold32</font>
+          <textcolor>$COLOR[text_primary]</textcolor>
+          <label>$INFO[Container(50).ListItem.Label]</label>
+          <scroll>false</scroll>
+        </control>
+
+        <!-- Genre / year -->
+        <control type="label" id="103">
+          <left>0</left><top>64</top>
+          <width>500</width><height>28</height>
+          <font>font14</font>
+          <textcolor>$COLOR[text_secondary]</textcolor>
+          <label>$INFO[Container(50).ListItem.Year]  ·  $INFO[Container(50).ListItem.Genre]</label>
+        </control>
+
+        <!-- Plot -->
+        <control type="textbox" id="104">
+          <left>0</left><top>96</top>
+          <width>500</width><height>80</height>
+          <font>font14</font>
+          <textcolor>$COLOR[text_secondary]</textcolor>
+          <label>$INFO[Container(50).ListItem.Plot]</label>
+          <autoscroll>false</autoscroll>
+        </control>
+
+        <!-- Play button -->
+        <control type="button" id="105">
+          <left>0</left><top>188</top>
+          <width>160</width><height>44</height>
+          <label>▶  Přehrát</label>
+          <font>fontBold16</font>
+          <textcolor>FF0B1632</textcolor>
+          <focusedcolor>FF0B1632</focusedcolor>
+          <texturefocus colordiffuse="$COLOR[btn_play]">white.png</texturefocus>
+          <texturenofocus colordiffuse="$COLOR[btn_play]">white.png</texturenofocus>
+          <onclick>XBMC.ActivateWindow(Videos,$INFO[Container(50).ListItem.FolderPath])</onclick>
+        </control>
+      </control>
+    </control>
+
+    <!-- ═══════════════════════════════════════════
+         TOP NAVIGATION BAR
+    ═══════════════════════════════════════════ -->
+    <control type="group">
+      <left>0</left><top>0</top>
+      <width>1280</width><height>60</height>
+
+      <!-- Navbar BG -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1280</width><height>60</height>
+        <texture colordiffuse="$COLOR[bg_navbar]">white.png</texture>
+      </control>
+
+      <!-- Logo / Brand -->
+      <control type="label">
+        <left>20</left><top>0</top>
+        <width>200</width><height>60</height>
+        <font>fontBold24</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>TVStream</label>
+        <aligny>center</aligny>
+      </control>
+
+      <!-- Nav Tabs -->
+      <control type="button" id="10">
+        <left>240</left><top>10</top>
+        <width>120</width><height>40</height>
+        <label>Domů</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[accent_cyan]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>XBMC.ActivateWindow(Home)</onclick>
+      </control>
+
+      <control type="button" id="11">
+        <left>380</left><top>10</top>
+        <width>120</width><height>40</height>
+        <label>Filmy</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>XBMC.ActivateWindow(Videos,plugin://plugin.video.tvstreamcz/?action=movies)</onclick>
+      </control>
+
+      <control type="button" id="12">
+        <left>520</left><top>10</top>
+        <width>120</width><height>40</height>
+        <label>Seriály</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>XBMC.ActivateWindow(Videos,plugin://plugin.video.tvstreamcz/?action=series)</onclick>
+      </control>
+
+      <control type="button" id="13">
+        <left>660</left><top>10</top>
+        <width>140</width><height>40</height>
+        <label>Vyhledat</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>XBMC.ActivateWindow(Videos,plugin://plugin.video.tvstreamcz/?action=search)</onclick>
+      </control>
+
+      <!-- Settings button right -->
+      <control type="button" id="14">
+        <left>1120</left><top>10</top>
+        <width>140</width><height>40</height>
+        <label>⚙ Nastavení</label>
+        <font>font14</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="00000000">white.png</texturenofocus>
+        <onclick>XBMC.ActivateWindow(Settings)</onclick>
+      </control>
+
+    </control>
+
+    <!-- Bottom accent line under navbar -->
+    <control type="image">
+      <left>0</left><top>60</top>
+      <width>1280</width><height>1</height>
+      <texture colordiffuse="$COLOR[separator]">white.png</texture>
+    </control>
+
+    <!-- ═══════════════════════════════════════════
+         CAROUSEL: Populární filmy
+    ═══════════════════════════════════════════ -->
+    <control type="group">
+      <left>0</left><top>415</top>
+      <width>1280</width><height>300</height>
+
+      <!-- Section label -->
+      <control type="label">
+        <left>20</left><top>0</top>
+        <width>400</width><height>32</height>
+        <font>fontBold20</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>Populární filmy</label>
+      </control>
+
+      <!-- Horizontal card list (id=50) -->
+      <control type="list" id="50">
+        <left>0</left><top>36</top>
+        <width>1280</width><height>256</height>
+        <itemwidth>180</itemwidth>
+        <itemheight>256</itemheight>
+        <orientation>horizontal</orientation>
+        <scrolltime>300</scrolltime>
+        <content>plugin://plugin.video.tvstreamcz/?action=movies&amp;sort=popular&amp;limit=20</content>
+
+        <itemlayout width="180" height="256">
+          <!-- Poster -->
+          <control type="image">
+            <left>4</left><top>0</top>
+            <width>172</width><height>220</height>
+            <texture>$INFO[ListItem.Art(thumb)]</texture>
+            <aspectratio>keep</aspectratio>
+          </control>
+          <!-- Title -->
+          <control type="label">
+            <left>4</left><top>224</top>
+            <width>172</width><height>32</height>
+            <font>font12</font>
+            <textcolor>$COLOR[text_secondary]</textcolor>
+            <label>$INFO[ListItem.Label]</label>
+            <align>center</align>
+          </control>
+        </itemlayout>
+
+        <focusedlayout width="180" height="256">
+          <!-- Focus border -->
+          <control type="image">
+            <left>0</left><top>0</top>
+            <width>180</width><height>225</height>
+            <texture colordiffuse="$COLOR[border_focus]">white.png</texture>
+          </control>
+          <control type="image">
+            <left>3</left><top>3</top>
+            <width>174</width><height>219</height>
+            <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+          </control>
+          <control type="image">
+            <left>4</left><top>4</top>
+            <width>172</width><height>216</height>
+            <texture>$INFO[ListItem.Art(thumb)]</texture>
+            <aspectratio>keep</aspectratio>
+          </control>
+          <!-- Title -->
+          <control type="label">
+            <left>4</left><top>224</top>
+            <width>172</width><height>32</height>
+            <font>fontBold12</font>
+            <textcolor>$COLOR[text_accent]</textcolor>
+            <label>$INFO[ListItem.Label]</label>
+            <align>center</align>
+          </control>
+        </focusedlayout>
+
+      </control>
+    </control>
+
+  </controls>
+</window>

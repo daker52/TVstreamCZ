@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="skin.tvstream" name="TVStream Theme" version="1.0.0" provider-name="daker52">
+  <requires>
+    <import addon="xbmc.gui" version="5.18.0"/>
+  </requires>
+  <extension point="xbmc.gui.skin" debugging="false">
+    <res name="720p"  aspect="16x9" default="true" folder="720p"  width="1280" height="720"/>
+    <res name="1080i" aspect="16x9"                folder="1080i" width="1920" height="1080"/>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="cs_CZ">TVStream – tmavé Disney+ téma pro Kodi</summary>
+    <summary lang="en_GB">TVStream – dark Disney+ inspired theme for Kodi</summary>
+    <description lang="cs_CZ">Moderní tmavé téma inspirované Disney+ s karetním rozložením, horizontálními karusely a tmavou námořnickou paletou barev.</description>
+    <description lang="en_GB">Modern dark theme inspired by Disney+ with card layout, horizontal carousels and a dark navy colour palette.</description>
+    <platform>all</platform>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>

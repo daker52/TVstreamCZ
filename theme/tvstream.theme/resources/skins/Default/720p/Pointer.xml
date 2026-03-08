@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+  <type>pointer</type>
+  <controls>
+    <control type="image" id="1">
+      <left>0</left><top>0</top>
+      <width>32</width><height>32</height>
+      <texture>-</texture>
+    </control>
+  </controls>
+</window>

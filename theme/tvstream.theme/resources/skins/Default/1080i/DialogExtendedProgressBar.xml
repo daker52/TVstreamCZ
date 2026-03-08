@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogExtendedProgressBar – used for repository updates, downloads etc. -->
+<window>
+  <type>dialog</type>
+  <zorder>96</zorder>
+  <controls>
+    <control type="group">
+      <left>240</left><top>320</top>
+      <width>800</width><height>80</height>
+
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>800</width><height>80</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>800</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+      <!-- Title (id=1) -->
+      <control type="label" id="1">
+        <left>20</left><top>8</top>
+        <width>760</width><height>22</height>
+        <font>fontBold13</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Message (id=2) -->
+      <control type="label" id="2">
+        <left>20</left><top>30</top>
+        <width>660</width><height>20</height>
+        <font>font12</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Percentage (id=3) -->
+      <control type="label" id="3">
+        <left>700</left><top>30</top>
+        <width>80</width><height>20</height>
+        <font>font12</font>
+        <textcolor>$COLOR[accent_cyan]</textcolor>
+        <label></label>
+        <align>right</align>
+      </control>
+
+      <!-- Progress bar (id=10) -->
+      <control type="progress" id="10">
+        <left>20</left><top>56</top>
+        <width>760</width><height>8</height>
+        <texturebg colordiffuse="$COLOR[progress_bg]">white.png</texturebg>
+        <textureleft colordiffuse="$COLOR[accent_cyan]">white.png</textureleft>
+        <texturemid colordiffuse="$COLOR[accent_cyan]">white.png</texturemid>
+        <textureright colordiffuse="$COLOR[accent_cyan]">white.png</textureright>
+        <textureoverlayleft>-</textureoverlayleft>
+        <textureoverlaymid>-</textureoverlaymid>
+        <textureoverlayright>-</textureoverlayright>
+      </control>
+
+    </control>
+  </controls>
+</window>

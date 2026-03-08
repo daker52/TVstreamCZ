@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DialogSeekBar – seek preview shown when pressing left/right during playback -->
+<window>
+  <type>dialog</type>
+  <zorder>94</zorder>
+  <controls>
+    <control type="group">
+      <left>0</left><top>630</top>
+      <width>1280</width><height>90</height>
+
+      <!-- Bar BG -->
+      <control type="image">
+        <left>0</left><top>0</top>
+        <width>1280</width><height>90</height>
+        <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+      </control>
+
+      <!-- Time elapsed (id=2) -->
+      <control type="label" id="2">
+        <left>40</left><top>20</top>
+        <width>120</width><height>30</height>
+        <font>fontBold16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <label>$INFO[Player.Time]</label>
+      </control>
+
+      <!-- + seek time (id=4) -->
+      <control type="label" id="4">
+        <left>170</left><top>20</top>
+        <width>160</width><height>30</height>
+        <font>fontBold20</font>
+        <textcolor>$COLOR[accent_cyan]</textcolor>
+        <label></label>
+      </control>
+
+      <!-- Total time (id=3) -->
+      <control type="label" id="3">
+        <left>1120</left><top>20</top>
+        <width>120</width><height>30</height>
+        <font>font16</font>
+        <textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[Player.Duration]</label>
+        <align>right</align>
+      </control>
+
+      <!-- Progress bar (id=11) -->
+      <control type="progress" id="11">
+        <left>40</left><top>60</top>
+        <width>1200</width><height>6</height>
+        <texturebg colordiffuse="$COLOR[progress_bg]">white.png</texturebg>
+        <textureleft colordiffuse="$COLOR[accent_cyan]">white.png</textureleft>
+        <texturemid colordiffuse="$COLOR[accent_cyan]">white.png</texturemid>
+        <textureright colordiffuse="$COLOR[accent_cyan]">white.png</textureright>
+        <textureoverlayleft>-</textureoverlayleft>
+        <textureoverlaymid>-</textureoverlaymid>
+        <textureoverlayright>-</textureoverlayright>
+      </control>
+
+      <!-- Seek dot (id=12) -->
+      <control type="image" id="12">
+        <left>0</left><top>54</top>
+        <width>18</width><height>18</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+
+    </control>
+  </controls>
+</window>

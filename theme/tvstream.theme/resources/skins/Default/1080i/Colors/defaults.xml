@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TVStream Theme – Disney+ colour palette
+  Format: AARRGGBB
+-->
+<colors>
+  <!-- Backgrounds -->
+  <color name="bg_base">FF0B1632</color>         <!-- Very dark navy – main background -->
+  <color name="bg_surface">FF0F2543</color>       <!-- Card/panel background -->
+  <color name="bg_elevated">FF1A3565</color>      <!-- Elevated elements, dialogs -->
+  <color name="bg_navbar">FF091228</color>        <!-- Top navigation bar -->
+  <color name="bg_hero">FF0D1E3F</color>          <!-- Hero banner background -->
+  <color name="bg_overlay">CC000000</color>       <!-- Semi-transparent overlay -->
+  <color name="bg_dim">AA000000</color>           <!-- Dimming overlay -->
+
+  <!-- Text -->
+  <color name="text_primary">FFFFFFFF</color>     <!-- White – titles, main text -->
+  <color name="text_secondary">FF8BA0BA</color>   <!-- Light blue-grey – subtitles -->
+  <color name="text_muted">FF5A7A9A</color>       <!-- Muted – metadata (genre, runtime) -->
+  <color name="text_accent">FF5BD7F7</color>      <!-- Cyan – highlighted / focused text -->
+  <color name="text_nav">FFAAC4E0</color>         <!-- Navigation tab labels -->
+  <color name="text_nav_active">FFFFFFFF</color>  <!-- Active navigation tab -->
+
+  <!-- Buttons -->
+  <color name="btn_play">FF01B3D6</color>         <!-- Teal play button -->
+  <color name="btn_play_text">FFFFFFFF</color>
+  <color name="btn_save">FF2B4070</color>         <!-- Dark blue save button -->
+  <color name="btn_save_text">FFFFFFFF</color>
+  <color name="btn_focus">FF5BD7F7</color>        <!-- Focus highlight -->
+  <color name="btn_focus_bg">FF1B3D6E</color>     <!-- Focused button background -->
+
+  <!-- Accents -->
+  <color name="accent_blue">FF1B7FE4</color>      <!-- Disney+ blue -->
+  <color name="accent_cyan">FF01B3D6</color>      <!-- Teal / cyan -->
+  <color name="accent_green">FF01D36A</color>     <!-- Success green -->
+
+  <!-- Borders / separators -->
+  <color name="border_card">FF1E4278</color>
+  <color name="border_focus">FF5BD7F7</color>
+  <color name="separator">FF1A2E52</color>
+
+  <!-- Progress / OSD -->
+  <color name="progress_bg">FF1A3565</color>
+  <color name="progress_fill">FF01B3D6</color>
+  <color name="progress_buffer">FF2B4070</color>
+
+  <!-- Keyboard -->
+  <color name="kbd_key_bg">FF1A3565</color>
+  <color name="kbd_key_focus">FF1B7FE4</color>
+  <color name="kbd_key_text">FFFFFFFF</color>
+
+  <!-- Transparent -->
+  <color name="none">00000000</color>
+</colors>
