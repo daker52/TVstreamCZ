@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="10101">
+  <type>dialog</type>
+  <zorder>80</zorder>
+  <defaultcontrol always="true">12</defaultcontrol>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+    <control type="group">
+      <left>280</left><top>220</top><width>720</width><height>280</height>
+      <control type="image">
+        <left>0</left><top>0</top><width>720</width><height>280</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top><width>720</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+      <!-- Heading (id=10) -->
+      <control type="label" id="10">
+        <left>20</left><top>10</top><width>680</width><height>32</height>
+        <font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+      </control>
+      <!-- Body (id=11) -->
+      <control type="label" id="11">
+        <left>20</left><top>46</top><width>680</width><height>30</height>
+        <font>font16</font><textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+      <!-- Progress bar background (id=10002) -->
+      <control type="progress" id="10002">
+        <left>20</left><top>90</top><width>680</width><height>10</height>
+        <texturebg colordiffuse="$COLOR[bg_surface]">white.png</texturebg>
+        <textureleft colordiffuse="$COLOR[accent_cyan]">white.png</textureleft>
+        <texturemid colordiffuse="$COLOR[accent_cyan]">white.png</texturemid>
+        <textureright colordiffuse="$COLOR[accent_cyan]">white.png</textureright>
+        <textureoverlay></textureoverlay>
+      </control>
+      <!-- Percentage label -->
+      <control type="label">
+        <left>20</left><top>106</top><width>680</width><height>24</height>
+        <font>font14</font><textcolor>$COLOR[text_secondary]</textcolor>
+        <label>$INFO[System.ProgressPercent]%</label>
+        <align>center</align>
+      </control>
+      <!-- Cancel button (id=12) -->
+      <control type="button" id="12">
+        <left>280</left><top>220</top><width>160</width><height>44</height>
+        <label>$LOCALIZE[222]</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus>
+      </control>
+    </control>
+  </controls>
+</window>

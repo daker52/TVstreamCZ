@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="10145">
+  <type>dialog</type>
+  <zorder>80</zorder>
+  <defaultcontrol always="true">3</defaultcontrol>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+    <control type="group">
+      <left>240</left><top>280</top><width>800</width><height>160</height>
+      <control type="image">
+        <left>0</left><top>0</top><width>800</width><height>160</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top><width>800</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+      <!-- Header label (id=1) -->
+      <control type="label" id="1">
+        <left>20</left><top>8</top><width>760</width><height>28</height>
+        <font>font16</font><textcolor>$COLOR[text_secondary]</textcolor>
+        <label></label>
+      </control>
+      <!-- Slider (id=3) -->
+      <control type="slider" id="3">
+        <left>20</left><top>44</top><width>760</width><height>30</height>
+        <textureback colordiffuse="$COLOR[bg_surface]">white.png</textureback>
+        <texturenib colordiffuse="$COLOR[accent_cyan]">white.png</texturenib>
+        <texturenibfocus colordiffuse="$COLOR[btn_focus]">white.png</texturenibfocus>
+      </control>
+      <!-- Value label (id=4) -->
+      <control type="label" id="4">
+        <left>20</left><top>80</top><width>760</width><height>28</height>
+        <font>fontBold16</font><textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+        <align>center</align>
+      </control>
+    </control>
+  </controls>
+</window>

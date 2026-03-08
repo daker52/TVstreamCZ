@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10049">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="label"><left>0</left><top>0</top><width>1280</width><height>60</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$LOCALIZE[272]</label><align>center</align><aligny>center</aligny></control>
+<control type="label"><left>0</left><top>340</top><width>1280</width><height>40</height><font>font16</font><textcolor>$COLOR[text_secondary]</textcolor><label>$LOCALIZE[275]</label><align>center</align></control>
+  </controls>
+</window>

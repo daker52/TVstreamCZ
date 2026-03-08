@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10014">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="visualisation" id="1"><left>0</left><top>0</top><width>1280</width><height>720</height></control>
+  </controls>
+</window>

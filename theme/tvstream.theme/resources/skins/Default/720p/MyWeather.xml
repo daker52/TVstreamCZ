@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10005">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="label"><left>0</left><top>200</top><width>1280</width><height>80</height><font>fontBold48</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[Weather.Temperature]</label><align>center</align></control>
+<control type="label"><left>0</left><top>290</top><width>1280</width><height>40</height><font>fontBold24</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[Weather.Conditions]</label><align>center</align></control>
+<control type="label"><left>0</left><top>340</top><width>1280</width><height>32</height><font>font16</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[Weather.Location]</label><align>center</align></control>
+  </controls>
+</window>

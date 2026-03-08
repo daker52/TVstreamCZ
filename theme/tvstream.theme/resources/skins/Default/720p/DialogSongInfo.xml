@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10500">
+  <type>dialog</type>
+  <zorder>80</zorder>
+  <defaultcontrol always="true">1</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_dim]">white.png</texture></control>
+    <control type="group"><left>200</left><top>150</top><width>880</width><height>420</height>
+      <control type="image"><left>0</left><top>0</top><width>880</width><height>420</height><texture colordiffuse="$COLOR[bg_elevated]">white.png</texture></control>
+      <control type="image"><left>0</left><top>0</top><width>880</width><height>3</height><texture colordiffuse="$COLOR[accent_cyan]">white.png</texture></control>
+      <control type="image" id="1"><left>20</left><top>10</top><width>180</width><height>180</height><texture>$INFO[ListItem.Art(thumb)]</texture><aspectratio>keep</aspectratio><defaultimage>DefaultAlbumCover.png</defaultimage></control>
+<control type="label" id="2"><left>220</left><top>10</top><width>620</width><height>36</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[ListItem.Label]</label></control>
+<control type="label" id="3"><left>220</left><top>50</top><width>620</width><height>28</height><font>font16</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Artist]</label></control>
+<control type="label" id="4"><left>220</left><top>80</top><width>620</width><height>28</height><font>font14</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Album]    $INFO[ListItem.Year]</label></control>
+      <control type="button" id="1"><left>360</left><top>374</top><width>160</width><height>40</height><label>$LOCALIZE[222]</label><font>font16</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[accent_cyan]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus></control>
+    </control>
+  </controls>
+</window>

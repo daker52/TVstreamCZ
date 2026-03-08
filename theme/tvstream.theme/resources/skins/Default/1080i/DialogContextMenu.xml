@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="10106">
+  <type>dialog</type>
+  <zorder>92</zorder>
+  <defaultcontrol always="true">3</defaultcontrol>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+    <control type="group">
+      <left>40</left><top>100</top><width>400</width><height>520</height>
+      <control type="image">
+        <left>0</left><top>0</top><width>400</width><height>520</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top><width>400</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+      <control type="list" id="3">
+        <left>0</left><top>8</top><width>400</width><height>512</height>
+        <itemheight>46</itemheight>
+        <scrolltime>200</scrolltime>
+        <itemlayout height="46">
+          <control type="image">
+            <left>0</left><top>0</top><width>400</width><height>46</height>
+            <texture colordiffuse="$COLOR[bg_surface]">white.png</texture>
+            <visible>ListItem.IsSelected</visible>
+          </control>
+          <control type="image">
+            <left>0</left><top>0</top><width>4</width><height>46</height>
+            <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+            <visible>ListItem.IsSelected</visible>
+          </control>
+          <control type="label">
+            <left>16</left><top>0</top><width>380</width><height>46</height>
+            <font>font16</font>
+            <textcolor>$COLOR[text_primary]</textcolor>
+            <label>$INFO[ListItem.Label]</label>
+            <aligny>center</aligny>
+          </control>
+        </itemlayout>
+        <focusedlayout height="46">
+          <control type="image">
+            <left>0</left><top>0</top><width>400</width><height>46</height>
+            <texture colordiffuse="$COLOR[btn_focus_bg]">white.png</texture>
+          </control>
+          <control type="image">
+            <left>0</left><top>0</top><width>4</width><height>46</height>
+            <texture colordiffuse="$COLOR[border_focus]">white.png</texture>
+          </control>
+          <control type="label">
+            <left>16</left><top>0</top><width>380</width><height>46</height>
+            <font>fontBold16</font>
+            <textcolor>$COLOR[text_accent]</textcolor>
+            <label>$INFO[ListItem.Label]</label>
+            <aligny>center</aligny>
+          </control>
+        </focusedlayout>
+      </control>
+    </control>
+  </controls>
+</window>

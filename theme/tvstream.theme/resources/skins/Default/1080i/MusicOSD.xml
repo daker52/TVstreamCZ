@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10032">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="image"><left>0</left><top>560</top><width>1280</width><height>160</height><texture colordiffuse="C0000000">white.png</texture></control>
+<control type="image" id="1"><left>20</left><top>568</top><width>100</width><height>100</height><texture>$INFO[Player.Art(thumb)]</texture><aspectratio>keep</aspectratio><defaultimage>DefaultAlbumCover.png</defaultimage></control>
+<control type="label"><left>140</left><top>572</top><width>700</width><height>32</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[Player.Title]</label></control>
+<control type="label"><left>140</left><top>608</top><width>700</width><height>28</height><font>font16</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[Player.Artist]    $INFO[Player.Album]</label></control>
+<control type="button" id="1"><left>512</left><top>648</top><width>60</width><height>44</height><label></label><font>fontBold24</font><textcolor>$COLOR[text_secondary]</textcolor><focusedcolor>$COLOR[text_primary]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="00000000">white.png</texturenofocus><onclick>Action(PrevTrack)</onclick></control>
+<control type="button" id="2"><left>584</left><top>644</top><width>60</width><height>52</height><label></label><font>fontBold32</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>FF0B1632</focusedcolor><texturefocus colordiffuse="$COLOR[btn_play]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus><onclick>Action(Pause)</onclick></control>
+<control type="button" id="3"><left>656</left><top>648</top><width>60</width><height>44</height><label></label><font>fontBold24</font><textcolor>$COLOR[text_secondary]</textcolor><focusedcolor>$COLOR[text_primary]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="00000000">white.png</texturenofocus><onclick>Action(NextTrack)</onclick></control>
+  </controls>
+</window>

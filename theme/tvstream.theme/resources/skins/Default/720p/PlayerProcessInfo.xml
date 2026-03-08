@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10028">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>60</height><texture colordiffuse="$COLOR[bg_navbar]">white.png</texture></control>
+<control type="label"><left>20</left><top>0</top><width>600</width><height>60</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$LOCALIZE[21381]</label><aligny>center</aligny></control>
+<control type="textbox" id="5"><left>20</left><top>70</top><width>1240</width><height>600</height><font>font14</font><textcolor>$COLOR[text_primary]</textcolor><autoscroll>false</autoscroll></control>
+  </controls>
+</window>

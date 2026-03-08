@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10502">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>60</height><texture colordiffuse="$COLOR[bg_navbar]">white.png</texture></control>
+<control type="label"><left>20</left><top>0</top><width>400</width><height>60</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[Container.FolderName]</label><aligny>center</aligny></control>
+<control type="list" id="50"><left>0</left><top>60</top><width>1280</width><height>660</height><itemheight>50</itemheight>
+  <itemlayout height="50"><control type="image"><left>4</left><top>4</top><width>42</width><height>42</height><texture>$INFO[ListItem.Art(thumb)]</texture><aspectratio>keep</aspectratio><defaultimage>DefaultAlbumCover.png</defaultimage></control><control type="label"><left>56</left><top>0</top><width>800</width><height>30</height><font>font16</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control><control type="label"><left>56</left><top>28</top><width>500</width><height>22</height><font>font12</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Label2]</label></control></itemlayout>
+  <focusedlayout height="50"><control type="image"><left>0</left><top>0</top><width>1280</width><height>50</height><texture colordiffuse="$COLOR[btn_focus_bg]">white.png</texture></control><control type="image"><left>4</left><top>4</top><width>42</width><height>42</height><texture>$INFO[ListItem.Art(thumb)]</texture><aspectratio>keep</aspectratio><defaultimage>DefaultAlbumCover.png</defaultimage></control><control type="label"><left>56</left><top>0</top><width>800</width><height>30</height><font>fontBold16</font><textcolor>$COLOR[text_accent]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control><control type="label"><left>56</left><top>28</top><width>500</width><height>22</height><font>font12</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Label2]</label></control></focusedlayout>
+</control>
+  </controls>
+</window>

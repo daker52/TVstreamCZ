@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10004">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>60</height><texture colordiffuse="$COLOR[bg_navbar]">white.png</texture></control>
+<control type="label"><left>20</left><top>0</top><width>400</width><height>60</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$LOCALIZE[10004]</label><aligny>center</aligny></control>
+<control type="list" id="4"><left>0</left><top>60</top><width>300</width><height>660</height><itemheight>50</itemheight>
+  <itemlayout height="50"><control type="image"><left>0</left><top>0</top><width>300</width><height>50</height><texture colordiffuse="$COLOR[bg_surface]">white.png</texture><visible>ListItem.IsSelected</visible></control><control type="label"><left>16</left><top>0</top><width>268</width><height>50</height><font>font16</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control></itemlayout>
+  <focusedlayout height="50"><control type="image"><left>0</left><top>0</top><width>4</width><height>50</height><texture colordiffuse="$COLOR[accent_cyan]">white.png</texture></control><control type="image"><left>4</left><top>0</top><width>296</width><height>50</height><texture colordiffuse="$COLOR[btn_focus_bg]">white.png</texture></control><control type="label"><left>16</left><top>0</top><width>268</width><height>50</height><font>fontBold16</font><textcolor>$COLOR[text_accent]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control></focusedlayout>
+</control>
+<control type="list" id="5"><left>300</left><top>60</top><width>980</width><height>660</height><itemheight>56</itemheight>
+  <itemlayout height="56"><control type="label"><left>20</left><top>0</top><width>940</width><height>30</height><font>font16</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control><control type="label"><left>20</left><top>30</top><width>940</width><height>24</height><font>font12</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Label2]</label></control></itemlayout>
+  <focusedlayout height="56"><control type="image"><left>0</left><top>0</top><width>980</width><height>56</height><texture colordiffuse="$COLOR[btn_focus_bg]">white.png</texture></control><control type="label"><left>20</left><top>0</top><width>940</width><height>30</height><font>fontBold16</font><textcolor>$COLOR[text_accent]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control><control type="label"><left>20</left><top>30</top><width>940</width><height>24</height><font>font12</font><textcolor>$COLOR[text_secondary]</textcolor><label>$INFO[ListItem.Label2]</label></control></focusedlayout>
+</control>
+  </controls>
+</window>

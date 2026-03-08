@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<window id="10025">
+  <type>window</type>
+  <defaultcontrol always="false">50</defaultcontrol>
+  <controls>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>720</height><texture colordiffuse="$COLOR[bg_base]">white.png</texture></control>
+    <control type="image"><left>0</left><top>0</top><width>1280</width><height>60</height><texture colordiffuse="$COLOR[bg_navbar]">white.png</texture></control>
+<control type="label"><left>20</left><top>0</top><width>400</width><height>60</height><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><label>$LOCALIZE[10016]</label><aligny>center</aligny></control>
+<control type="list" id="4"><left>0</left><top>70</top><width>280</width><height>630</height><itemheight>46</itemheight>
+  <itemlayout height="46"><control type="label"><left>10</left><top>0</top><width>260</width><height>46</height><font>font14</font><textcolor>$COLOR[text_primary]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control></itemlayout>
+  <focusedlayout height="46"><control type="image"><left>0</left><top>0</top><width>280</width><height>46</height><texture colordiffuse="$COLOR[btn_focus_bg]">white.png</texture></control><control type="label"><left>10</left><top>0</top><width>260</width><height>46</height><font>fontBold14</font><textcolor>$COLOR[text_accent]</textcolor><label>$INFO[ListItem.Label]</label><aligny>center</aligny></control></focusedlayout>
+</control>
+<control type="textbox" id="5"><left>290</left><top>70</top><width>970</width><height>630</height><font>font14</font><textcolor>$COLOR[text_primary]</textcolor><autoscroll>false</autoscroll></control>
+  </controls>
+</window>

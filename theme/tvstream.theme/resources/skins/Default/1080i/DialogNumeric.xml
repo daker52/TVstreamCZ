@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="10109">
+  <type>dialog</type>
+  <zorder>80</zorder>
+  <defaultcontrol always="true">4</defaultcontrol>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+    <control type="group">
+      <left>340</left><top>180</top><width>600</width><height>360</height>
+      <control type="image">
+        <left>0</left><top>0</top><width>600</width><height>360</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top><width>600</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+      <!-- Heading -->
+      <control type="label">
+        <left>20</left><top>8</top><width>560</width><height>32</height>
+        <font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor>
+        <label>$LOCALIZE[611]</label>
+      </control>
+      <!-- Input display (id=4) -->
+      <control type="label" id="4">
+        <left>20</left><top>48</top><width>560</width><height>44</height>
+        <font>fontBold32</font><textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+        <align>center</align>
+      </control>
+      <control type="image">
+        <left>20</left><top>96</top><width>560</width><height>1</height>
+        <texture colordiffuse="$COLOR[separator]">white.png</texture>
+      </control>
+      <!-- Number pad rows -->
+      <control type="group">
+        <left>100</left><top>104</top><width>400</width><height>200</height>
+        <!-- Row 1: 1 2 3 -->
+        <control type="button" id="1"><left>0</left><top>0</top><width>80</width><height>50</height><label>1</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="2"><left>100</left><top>0</top><width>80</width><height>50</height><label>2</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="3"><left>200</left><top>0</top><width>80</width><height>50</height><label>3</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <!-- Row 2: 4 5 6 -->
+        <control type="button" id="4"><left>0</left><top>60</top><width>80</width><height>50</height><label>4</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="5"><left>100</left><top>60</top><width>80</width><height>50</height><label>5</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="6"><left>200</left><top>60</top><width>80</width><height>50</height><label>6</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <!-- Row 3: 7 8 9 -->
+        <control type="button" id="7"><left>0</left><top>120</top><width>80</width><height>50</height><label>7</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="8"><left>100</left><top>120</top><width>80</width><height>50</height><label>8</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="9"><left>200</left><top>120</top><width>80</width><height>50</height><label>9</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <!-- Row 4: . 0 backsp -->
+        <control type="button" id="11"><left>0</left><top>180</top><width>80</width><height>50</height><label>.</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="10"><left>100</left><top>180</top><width>80</width><height>50</height><label>0</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+        <control type="button" id="8"><left>200</left><top>180</top><width>80</width><height>50</height><label>⌫</label><font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+      </control>
+      <!-- OK / Cancel -->
+      <control type="button" id="0"><left>100</left><top>314</top><width>160</width><height>40</height><label>$LOCALIZE[186]</label><font>fontBold16</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>FF0B1632</focusedcolor><texturefocus colordiffuse="$COLOR[accent_cyan]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus></control>
+      <control type="button" id="12"><left>280</left><top>314</top><width>160</width><height>40</height><label>$LOCALIZE[222]</label><font>font16</font><textcolor>$COLOR[text_primary]</textcolor><focusedcolor>$COLOR[text_accent]</focusedcolor><texturefocus colordiffuse="$COLOR[btn_focus_bg]">white.png</texturefocus><texturenofocus colordiffuse="$COLOR[bg_surface]">white.png</texturenofocus></control>
+    </control>
+  </controls>
+</window>

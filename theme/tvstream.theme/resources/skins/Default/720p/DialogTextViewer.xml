@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window id="10147">
+  <type>dialog</type>
+  <zorder>85</zorder>
+  <defaultcontrol always="true">1</defaultcontrol>
+  <controls>
+    <control type="image">
+      <left>0</left><top>0</top><width>1280</width><height>720</height>
+      <texture colordiffuse="$COLOR[bg_dim]">white.png</texture>
+    </control>
+    <control type="group">
+      <left>100</left><top>80</top><width>1080</width><height>560</height>
+      <control type="image">
+        <left>0</left><top>0</top><width>1080</width><height>560</height>
+        <texture colordiffuse="$COLOR[bg_elevated]">white.png</texture>
+      </control>
+      <control type="image">
+        <left>0</left><top>0</top><width>1080</width><height>3</height>
+        <texture colordiffuse="$COLOR[accent_cyan]">white.png</texture>
+      </control>
+      <!-- Heading (id=1) -->
+      <control type="label" id="1">
+        <left>20</left><top>10</top><width>1040</width><height>36</height>
+        <font>fontBold20</font><textcolor>$COLOR[text_primary]</textcolor>
+        <label></label>
+      </control>
+      <control type="image">
+        <left>20</left><top>50</top><width>1040</width><height>1</height>
+        <texture colordiffuse="$COLOR[separator]">white.png</texture>
+      </control>
+      <!-- Text body (id=5) -->
+      <control type="textbox" id="5">
+        <left>20</left><top>58</top><width>1040</width><height>448</height>
+        <font>font16</font><textcolor>$COLOR[text_primary]</textcolor>
+        <autoscroll>false</autoscroll>
+      </control>
+      <!-- Close button -->
+      <control type="button" id="1">
+        <left>460</left><top>512</top><width>160</width><height>40</height>
+        <label>$LOCALIZE[222]</label>
+        <font>font16</font>
+        <textcolor>$COLOR[text_primary]</textcolor>
+        <focusedcolor>$COLOR[text_accent]</focusedcolor>
+        <texturefocus colordiffuse="$COLOR[accent_cyan]">white.png</texturefocus>
+        <texturenofocus colordiffuse="$COLOR[btn_save]">white.png</texturenofocus>
+      </control>
+    </control>
+  </controls>
+</window>
