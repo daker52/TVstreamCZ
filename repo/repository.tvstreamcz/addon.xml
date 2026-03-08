@@ -2,9 +2,9 @@
 <addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.0"
        provider-name="daker52">
   <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
-    <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml</info>
-    <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml.md5</checksum>
-    <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/</datadir>
+    <info compressed="false">http://194.182.80.24/kodi-repo/addons.xml</info>
+    <checksum>http://194.182.80.24/kodi-repo/addons.xml.md5</checksum>
+    <datadir zip="true">http://194.182.80.24/kodi-repo/</datadir>
     <assets>
       <icon></icon>
     </assets>

@@ -5,14 +5,23 @@ Builds the Kodi repository structure under repo/.
 Run from the root of the addon directory:
     python build_repo.py
 
-After running, commit and push – Kodi can then install from:
-    https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/
+After running, upload repo/ to server – Kodi can then install from:
+    http://194.182.80.24/kodi-repo/
 """
+
 import hashlib
 import os
 import shutil
+import sys
 import zipfile
 import xml.etree.ElementTree as ET
+
+# Force UTF-8 output so Czech chars and arrows don't break on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
+# URL where the repo will be hosted (trailing slash required)
+BASE_URL = "http://194.182.80.24/kodi-repo/"
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.join(ROOT, "repo")
@@ -126,9 +135,9 @@ def main():
 <addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.0"
        provider-name="daker52">
   <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
-    <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml</info>
-    <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml.md5</checksum>
-    <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/</datadir>
+    <info compressed="false">{BASE_URL}addons.xml</info>
+    <checksum>{BASE_URL}addons.xml.md5</checksum>
+    <datadir zip="true">{BASE_URL}</datadir>
     <assets>
       <icon></icon>
     </assets>
@@ -141,6 +150,7 @@ def main():
     <platform>all</platform>
   </extension>
 </addon>'''
+    repo_xml_content = repo_xml_content.replace("{BASE_URL}", BASE_URL)
     with open(repo_addon_xml, "w", encoding="utf-8") as f:
         f.write(repo_xml_content)
     print(f"\n[2] Zipping {repo_id} v{repo_ver} ...")
@@ -173,7 +183,7 @@ def main():
     print(f"\nRepozitář je v: {REPO_DIR}")
     print("\nInstallace v Kodi:")
     print("  1. Nastavení → Správce souborů → Přidat zdroj")
-    print("     URL: https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/")
+    print(f"     URL: {BASE_URL}")
     print("     Název: TVStreamCZ")
     print("  2. Doplňky → Instalovat ze souboru ZIP → TVStreamCZ")
     print(f"     → repository.tvstreamcz-{repo_ver}.zip")
