@@ -2,5 +2,9 @@
 *.pyc
 *.pyo
 .venv/
-*.zip
 .DS_Store
+
+# ZIPy v kořeni projektu ignorovat, ale repo/*.zip musí být na GitHubu pro Kodi
+*.zip
+!repo/
+!repo/**

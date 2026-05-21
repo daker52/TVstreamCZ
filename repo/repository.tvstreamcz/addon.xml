@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.0"
+<addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.1"
        provider-name="daker52">
   <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
-    <info compressed="false">http://194.182.80.24/kodi-repo/addons.xml</info>
-    <checksum>http://194.182.80.24/kodi-repo/addons.xml.md5</checksum>
-    <datadir zip="true">http://194.182.80.24/kodi-repo/</datadir>
-    <assets>
-      <icon></icon>
-    </assets>
+    <dir>
+      <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml</info>
+      <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml.md5</checksum>
+      <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/</datadir>
+    </dir>
   </extension>
   <extension point="xbmc.addon.metadata">
-    <summary lang="cs">Repozitář pro addon TVStreamCZ</summary>
-    <summary lang="en">Repository for TVStreamCZ addon</summary>
-    <description lang="cs">Umožňuje instalaci a automatické aktualizace addonu plugin.video.tvstreamcz.</description>
-    <description lang="en">Enables installation and automatic updates of plugin.video.tvstreamcz addon.</description>
+    <summary lang="cs_CZ">Repozitář doplňků TVStreamCZ</summary>
+    <summary lang="en_GB">TVStreamCZ add-ons repository</summary>
+    <description lang="cs_CZ">Instalace a aktualizace doplňků TVStreamCZ a YTS-Subs CZ pro Kodi.</description>
+    <description lang="en_GB">Install and update TVStreamCZ and YTS-Subs CZ add-ons for Kodi.</description>
     <platform>all</platform>
   </extension>
 </addon>

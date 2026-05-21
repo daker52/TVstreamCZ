@@ -1,0 +1,45 @@
+name: Build Kodi repository
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "addon.xml"
+      - "addon.py"
+      - "service.py"
+      - "resources/**"
+      - "build_repo.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin.video.tvstreamcz
+
+      - uses: actions/checkout@v4
+        with:
+          repository: daker52/YTS-Subs-CZ
+          path: service.subtitles.ytssubscz
+
+      - name: Build repo/
+        working-directory: plugin.video.tvstreamcz
+        run: python build_repo.py --base-url https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/${{ github.ref_name }}/repo/
+
+      - name: Commit repository artifacts
+        working-directory: plugin.video.tvstreamcz
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add repo/
+          if git diff --staged --quiet; then
+            echo "No repo changes"
+          else
+            git commit -m "chore: rebuild Kodi repository [skip ci]"
+            git push
+          fi
