@@ -3,7 +3,7 @@
   <addon id="plugin.video.tvstreamcz" name="TVStreamCZ" version="0.3.2" provider-name="TVStreamCZ">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
-        <import addon="script.module.requests" version="2.27.1" />
+        <import addon="script.module.requests" version="2.18.0" />
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py">
         <provides>video</provides>
@@ -13,10 +13,10 @@
         <assets>
             <icon>icon.png</icon>
         </assets>
-        <summary lang="cs_CZ">Streamovací doplněk pro Webshare.cz</summary>
+        <summary lang="cs_CZ">StreamovacĂ­ doplnÄ›k pro Webshare.cz</summary>
         <summary lang="en_GB">Streaming add-on for Webshare.cz</summary>
-        <description lang="cs_CZ">Doplněk pro Kodi zpřístupňující filmy a seriály uložené na Webshare.cz včetně přihlášení, filtrů kvality a metadat z TMDb/ČSFD.</description>
-        <description lang="en_GB">Kodi add-on that browses Webshare.cz movies and TV shows with account login, quality/language filters and optional metadata enrichment from TMDb/ČSFD.</description>
+        <description lang="cs_CZ">DoplnÄ›k pro Kodi zpĹ™Ă­stupĹujĂ­cĂ­ filmy a seriĂˇly uloĹľenĂ© na Webshare.cz vÄŤetnÄ› pĹ™ihlĂˇĹˇenĂ­, filtrĹŻ kvality a metadat z TMDb/ÄŚSFD.</description>
+        <description lang="en_GB">Kodi add-on that browses Webshare.cz movies and TV shows with account login, quality/language filters and optional metadata enrichment from TMDb/ÄŚSFD.</description>
         <language>cs,en</language>
         <platform>all</platform>
     </extension>
@@ -24,26 +24,26 @@
   <addon id="service.subtitles.ytssubscz" name="YTS-Subs CZ" version="1.3.0" provider-name="TVStreamCZ">
     <requires>
         <import addon="xbmc.python" version="3.0.0" />
-        <import addon="script.module.requests" version="2.27.1" />
+        <import addon="script.module.requests" version="2.18.0" />
     </requires>
     <extension point="xbmc.subtitle.module" library="service.py" />
     <extension point="xbmc.service" library="service_auto.py" start="login" />
     <extension point="xbmc.addon.metadata">
-        <summary lang="cs_CZ">České titulky pro Kodi</summary>
+        <summary lang="cs_CZ">ÄŚeskĂ© titulky pro Kodi</summary>
         <summary lang="en_GB">Czech subtitles for Kodi</summary>
-        <description lang="cs_CZ">České titulky zdarma. Při přehrání filmu automaticky vyhledá a zapne CZ titulky (lze vypnout). Ruční výběr: Titulky → Stáhnout.</description>
+        <description lang="cs_CZ">ÄŚeskĂ© titulky zdarma. PĹ™i pĹ™ehrĂˇnĂ­ filmu automaticky vyhledĂˇ a zapne CZ titulky (lze vypnout). RuÄŤnĂ­ vĂ˝bÄ›r: Titulky â†’ StĂˇhnout.</description>
         <description lang="en_GB">Free Czech subtitles. Auto search on playback; manual download from subtitle menu.</description>
-        <disclaimer lang="cs_CZ">Vyžaduje jen připojení k internetu.</disclaimer>
+        <disclaimer lang="cs_CZ">VyĹľaduje jen pĹ™ipojenĂ­ k internetu.</disclaimer>
         <platform>all</platform>
         <license>GPL-2.0-or-later</license>
     </extension>
 </addon>
-  <addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.1" provider-name="daker52">
+  <addon id="repository.tvstreamcz" name="TVStreamCZ Repository" version="1.0.2" provider-name="daker52">
   <extension point="xbmc.addon.repository" name="TVStreamCZ Repository">
     <dir>
-      <info compressed="false">https://daker52.github.io/TVstreamCZ/repo/addons.xml</info>
-      <checksum>https://daker52.github.io/TVstreamCZ/repo/addons.xml.md5</checksum>
-      <datadir zip="true">https://daker52.github.io/TVstreamCZ/repo/</datadir>
+      <info compressed="false">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml</info>
+      <checksum>https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/addons.xml.md5</checksum>
+      <datadir zip="true">https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/</datadir>
     </dir>
   </extension>
   <extension point="xbmc.addon.metadata">

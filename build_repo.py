@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 Sestaví Kodi repozitář do složky repo/ a kopii pro GitHub Pages (docs/repo/).
 
@@ -30,7 +30,9 @@ RAW_BASE_URL = "https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/"
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.join(ROOT, "repo")
 DOCS_REPO_DIR = os.path.join(ROOT, "docs", "repo")
-REPO_ADDON_VERSION = "1.0.1"
+REPO_ADDON_VERSION = "1.0.2"
+# Stahování doplňků přes raw (spolehlivé na TV); Pages jen pro procházení složky v Kodi.
+REPO_META_BASE_URL = RAW_BASE_URL
 
 EXCLUDE = {
     ".git", ".gitignore", ".venv", "venv", "env", "repo", "docs", "__pycache__",
@@ -212,7 +214,7 @@ def main() -> None:
     repo_id = "repository.tvstreamcz"
     repo_addon_dir = os.path.join(REPO_DIR, repo_id)
     print(f"\n[2] {repo_id} v{REPO_ADDON_VERSION}")
-    repo_addon_xml = write_repository_addon(repo_addon_dir, base_url)
+    repo_addon_xml = write_repository_addon(repo_addon_dir, REPO_META_BASE_URL)
     zip_addon(repo_id, repo_addon_dir, REPO_DIR, REPO_ADDON_VERSION)
     addon_xml_paths.append(repo_addon_xml)
 
