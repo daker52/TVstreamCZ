@@ -166,14 +166,17 @@ def main():
     ])
 
     addons_xml_path = os.path.join(REPO_DIR, "addons.xml")
-    with open(addons_xml_path, "w", encoding="utf-8") as f:
-        f.write(addons_xml_content)
+    # Write in binary mode with LF endings so MD5 matches what's served
+    addons_xml_bytes = addons_xml_content.replace("\r\n", "\n").encode("utf-8")
+    with open(addons_xml_path, "wb") as f:
+        f.write(addons_xml_bytes)
     print(f"  Written: {addons_xml_path}")
 
-    addons_md5 = md5_of(addons_xml_content)
+    # MD5 calculated from the actual bytes that will be served
+    addons_md5 = hashlib.md5(addons_xml_bytes).hexdigest()
     md5_path = os.path.join(REPO_DIR, "addons.xml.md5")
-    with open(md5_path, "w", encoding="utf-8") as f:
-        f.write(addons_md5)
+    with open(md5_path, "wb") as f:
+        f.write(addons_md5.encode("ascii"))
     print(f"  Written: {md5_path}  ({addons_md5})")
 
     # ------------------------------------------------------------------ #

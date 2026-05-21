@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<window>
+    <controls>
+        <control type="label" id="1">
+            <left>80</left>
+            <top>40</top>
+            <width>1760</width>
+            <height>50</height>
+            <font>font14</font>
+            <textcolor>FFFFFFFF</textcolor>
+            <label>Vyberte stream</label>
+        </control>
+        <control type="list" id="100">
+            <left>80</left>
+            <top>110</top>
+            <width>1760</width>
+            <height>850</height>
+            <itemlayout height="50">
+                <control type="label">
+                    <left>10</left>
+                    <width>1740</width>
+                    <height>50</height>
+                    <font>font13</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <info>ListItem.Label</info>
+                </control>
+            </itemlayout>
+            <focusedlayout height="50">
+                <control type="image">
+                    <width>1760</width>
+                    <height>50</height>
+                    <texture colordiffuse="40FFFFFF">white.png</texture>
+                </control>
+                <control type="label">
+                    <left>10</left>
+                    <width>1740</width>
+                    <height>50</height>
+                    <font>font13</font>
+                    <textcolor>FFFFD700</textcolor>
+                    <info>ListItem.Label</info>
+                </control>
+            </focusedlayout>
+        </control>
+        <control type="button" id="200">
+            <left>80</left>
+            <top>980</top>
+            <width>400</width>
+            <height>60</height>
+            <label>OK</label>
+        </control>
+        <control type="button" id="201">
+            <left>520</left>
+            <top>980</top>
+            <width>400</width>
+            <height>60</height>
+            <label>Zrušit</label>
+        </control>
+    </controls>
+</window>

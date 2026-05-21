@@ -150,9 +150,11 @@ class TMDbMetadataProvider(MetadataProvider):
         genres = [genre.get("name") for genre in details.get("genres", []) if genre.get("name")]
         rating = details.get("vote_average")
         vote_count = details.get("vote_count")
+        imdb_id = (details.get("imdb_id") or "").strip()
         metadata = {
             "title": title,
             "originaltitle": original_title,
+            "imdb": imdb_id,
             "plot": overview,
             "poster": poster,
             "fanart": fanart,

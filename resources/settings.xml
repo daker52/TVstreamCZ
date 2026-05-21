@@ -23,6 +23,10 @@
         <setting id="download_type" type="enum" label="32056" values="video_stream|file_download" lvalues="32057|32058" default="0" />
         <setting id="force_https" type="bool" label="32059" default="true" />
     </category>
+    <category label="Titulky">
+        <setting type="lsep" label="Pro titulky v přehrávači nainstalujte doplněk service.subtitles.ytssubscz" />
+        <setting type="lsep" label="(Nastavení Kodi → Titulky → Stáhnout → YTS-Subs CZ)" />
+    </category>
     <category label="SledujFilmy.io (FREE)">
         <setting id="sledujfilmy_enabled" type="bool" label="Povolit SledujFilmy.io" default="true" />
         <setting type="sep" />
