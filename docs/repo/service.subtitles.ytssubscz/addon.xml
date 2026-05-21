@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="service.subtitles.ytssubscz"
+       name="YTS-Subs CZ"
+       version="1.3.0"
+       provider-name="TVStreamCZ">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.requests" version="2.27.1" />
+    </requires>
+    <extension point="xbmc.subtitle.module" library="service.py" />
+    <extension point="xbmc.service" library="service_auto.py" start="login" />
+    <extension point="xbmc.addon.metadata">
+        <summary lang="cs_CZ">České titulky pro Kodi</summary>
+        <summary lang="en_GB">Czech subtitles for Kodi</summary>
+        <description lang="cs_CZ">České titulky zdarma. Při přehrání filmu automaticky vyhledá a zapne CZ titulky (lze vypnout). Ruční výběr: Titulky → Stáhnout.</description>
+        <description lang="en_GB">Free Czech subtitles. Auto search on playback; manual download from subtitle menu.</description>
+        <disclaimer lang="cs_CZ">Vyžaduje jen připojení k internetu.</disclaimer>
+        <platform>all</platform>
+        <license>GPL-2.0-or-later</license>
+    </extension>
+</addon>

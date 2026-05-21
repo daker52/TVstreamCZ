@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Sestaví Kodi repozitář do složky repo/.
+Sestaví Kodi repozitář do složky repo/ a kopii pro GitHub Pages (docs/repo/).
 
 Použití:
     python build_repo.py
-    python build_repo.py --base-url https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/
+    python build_repo.py --base-url https://daker52.github.io/TVstreamCZ/repo/
 
-Po sestavení nahrajte obsah repo/ na web (GitHub push stačí pro raw URL).
+Po pushi zapněte GitHub Pages: Settings → Pages → main, folder /docs
+V Kodi použijte Pages URL (ne raw.githubusercontent.com).
 """
 
 from __future__ import annotations
@@ -22,15 +23,17 @@ import xml.etree.ElementTree as ET
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-# Výchozí veřejná URL (GitHub raw) – změňte přes --base-url
-DEFAULT_BASE_URL = "https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/"
+# GitHub Pages umí výpis složky pro Kodi; raw.githubusercontent.com ne (Unable to connect).
+DEFAULT_BASE_URL = "https://daker52.github.io/TVstreamCZ/repo/"
+RAW_BASE_URL = "https://raw.githubusercontent.com/daker52/TVstreamCZ/main/repo/"
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 REPO_DIR = os.path.join(ROOT, "repo")
+DOCS_REPO_DIR = os.path.join(ROOT, "docs", "repo")
 REPO_ADDON_VERSION = "1.0.1"
 
 EXCLUDE = {
-    ".git", ".gitignore", ".venv", "venv", "env", "repo", "__pycache__",
+    ".git", ".gitignore", ".venv", "venv", "env", "repo", "docs", "__pycache__",
     "build_repo.py", ".github",
     "debug_ajax.py", "debug_film_detail.py", "debug_html.py",
     "debug_kodi_import.py", "debug_sledujfilmy.html", "debug_sledujfilmy.py",
@@ -123,6 +126,31 @@ def write_repository_addon(repo_addon_dir: str, base_url: str) -> str:
     return repo_addon_xml
 
 
+def write_kodi_index_html(target_dir: str, base_url: str) -> None:
+    """HTML výpis souborů ve formátu, který Kodi umí procházet."""
+    entries = []
+    for name in sorted(os.listdir(target_dir)):
+        full = os.path.join(target_dir, name)
+        if os.path.isfile(full):
+            entries.append(name)
+    lines = ['<a href="../">../</a>']
+    for name in entries:
+        lines.append(f'<a href="{name}">{name}</a>')
+    pre_block = "\n".join(lines)
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Index of /repo/</title></head>
+<body><h1>TVStreamCZ Kodi Repository</h1>
+<p>URL pro Kodi: <code>{base_url}</code></p>
+<pre>
+{pre_block}
+</pre>
+</body></html>
+"""
+    with open(os.path.join(target_dir, "index.html"), "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(html)
+    print(f"  index.html ({len(entries)} souborů)")
+
+
 def discover_extra_addons() -> list[tuple[str, str]]:
     """Volitelné doplňky ve stejné nadřazené složce (např. Roaming addons)."""
     candidates = []
@@ -138,7 +166,7 @@ def discover_extra_addons() -> list[tuple[str, str]]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Build Kodi repository in repo/")
+    parser = argparse.ArgumentParser(description="Build Kodi repository in repo/ and docs/repo/")
     parser.add_argument(
         "--base-url",
         default=os.environ.get("KODI_REPO_BASE_URL", DEFAULT_BASE_URL),
@@ -201,36 +229,37 @@ def main() -> None:
 
     print(f"  MD5: {addons_md5}")
 
-    # Návod pro Kodi
-    index_path = os.path.join(REPO_DIR, "index.html")
-    with open(index_path, "w", encoding="utf-8") as handle:
-        handle.write(
-            f"""<!DOCTYPE html>
-<html lang="cs"><head><meta charset="utf-8"><title>TVStreamCZ Kodi Repo</title></head>
-<body>
-<h1>TVStreamCZ Kodi Repository</h1>
-<p>URL zdroje pro Kodi: <code>{base_url}</code></p>
-<ol>
-<li>Nastavení → Správce souborů → Přidat zdroj → výše uvedená URL</li>
-<li>Doplňky → ikona krabice → Instalovat ze souboru → zdroj TVStreamCZ →
-<code>repository.tvstreamcz-{REPO_ADDON_VERSION}.zip</code></li>
-<li>Doplňky → Instalovat z repozitáře → TVStreamCZ Repository</li>
-</ol>
-</body></html>
-"""
-        )
+    write_kodi_index_html(REPO_DIR, base_url)
+
+    # Kopie pro GitHub Pages (docs/repo/) – Kodi umí procházet tuto URL
+    print("\n[4] GitHub Pages → docs/repo/")
+    if os.path.isdir(os.path.join(ROOT, "docs")):
+        shutil.rmtree(os.path.join(ROOT, "docs"))
+    os.makedirs(DOCS_REPO_DIR, exist_ok=True)
+    for name in os.listdir(REPO_DIR):
+        src = os.path.join(REPO_DIR, name)
+        dst = os.path.join(DOCS_REPO_DIR, name)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy2(src, dst)
+    with open(os.path.join(ROOT, "docs", ".nojekyll"), "w", encoding="utf-8") as handle:
+        handle.write("")
+    pages_url = DEFAULT_BASE_URL
+    write_kodi_index_html(DOCS_REPO_DIR, pages_url)
 
     print("\n=== Hotovo ===")
-    print(f"Složka: {REPO_DIR}")
-    print("\n--- Instalace v Kodi ---")
-    print("1. Nastavení → Správce souborů → Přidat zdroj")
-    print(f"   Protokol: HTTP(s)   URL: {base_url}")
-    print("   Název: TVStreamCZ (libovolný)")
-    print("2. Doplňky → Instalovat ze souboru (ZIP) → Procházet → TVStreamCZ")
-    print(f"   → repository.tvstreamcz-{REPO_ADDON_VERSION}.zip")
-    print("3. Doplňky → Instalovat z repozitáře → TVStreamCZ Repository")
-    print("   → Video doplňky / Služby / Titulky podle dopňku")
-    print("\nPro GitHub: commit + push složky repo/, pak použijte výše uvedenou URL.")
+    print(f"Složka repo/:  {REPO_DIR}")
+    print(f"Složka Pages: {DOCS_REPO_DIR}")
+    print("\n--- Instalace v Kodi (použijte GitHub Pages URL) ---")
+    print("1. GitHub → Settings → Pages → Source: main, folder /docs")
+    print("2. Nastavení → Správce souborů → Přidat zdroj")
+    print(f"   URL: {pages_url}")
+    print("   (U raw.githubusercontent.com Kodi ukáže Unable to connect – to je normální.)")
+    print("3. Doplňky → Instalovat ze souboru → TVStreamCZ →")
+    print(f"   repository.tvstreamcz-{REPO_ADDON_VERSION}.zip")
+    print("4. Doplňky → Instalovat z repozitáře → TVStreamCZ Repository")
+    print(f"\nPřímý odkaz na repozitář (ZIP): {RAW_BASE_URL}repository.tvstreamcz-{REPO_ADDON_VERSION}.zip")
 
 
 if __name__ == "__main__":

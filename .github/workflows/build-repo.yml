@@ -29,14 +29,14 @@ jobs:
 
       - name: Build repo/
         working-directory: plugin.video.tvstreamcz
-        run: python build_repo.py --base-url https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/${{ github.ref_name }}/repo/
+        run: python build_repo.py
 
       - name: Commit repository artifacts
         working-directory: plugin.video.tvstreamcz
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add repo/
+          git add repo/ docs/
           if git diff --staged --quiet; then
             echo "No repo changes"
           else
